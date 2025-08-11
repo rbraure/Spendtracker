@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Spending Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a0a0a0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #808080;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full bg-white shadow-xl rounded-2xl p-6 sm:p-8 space-y-8">
+        <h1 class="text-4xl font-extrabold text-center text-gray-900 mb-8 tracking-tight">
+            💰 Modern Spending Tracker
+        </h1>
+
+        <!-- Add/Edit Expense Section -->
+        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-xl shadow-lg">
+            <h2 id="formTitle" class="text-2xl font-bold text-white mb-5 text-center">Add New Expense</h2>
+            <form id="expenseForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="date" class="block text-white text-sm font-medium mb-1">Date</label>
+                    <input type="date" id="date" required
+                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                </div>
+                <div>
+                    <label for="category" class="block text-white text-sm font-medium mb-1">Category</label>
+                    <input type="text" id="category" placeholder="e.g., Food, Transport" required
+                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                </div>
+                <div>
+                    <label for="amount" class="block text-white text-sm font-medium mb-1">Amount</label>
+                    <input type="number" id="amount" placeholder="e.g., 25.50" step="0.01" required
+                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                </div>
+                <div>
+                    <label for="description" class="block text-white text-sm font-medium mb-1">Description</label>
+                    <input type="text" id="description" placeholder="Optional notes"
+                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                </div>
+                <div>
+                    <label for="paymentMethod" class="block text-white text-sm font-medium mb-1">Payment Method</label>
+                    <select id="paymentMethod" required
+                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                        <option value="">Select Method</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Prompt Payment">Prompt Payment</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2 flex justify-center mt-4 space-x-4">
+                    <button type="submit" id="submitButton"
+                            class="bg-white text-blue-600 font-bold py-3 px-8 rounded-full shadow-md hover:bg-gray-100 hover:text-blue-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75">
+                        Add Expense
+                    </button>
+                    <button type="button" id="cancelEditButton"
+                            class="bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full shadow-md hover:bg-gray-400 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 hidden">
+                        Cancel Edit
+                    </button>
+                </div>
+            </form>
+            <div id="messageBox" class="text-white text-center mt-4 font-medium hidden"></div>
+        </div>
+
+        <!-- Import/Export Data Section -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Manage Data</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Import Data Section -->
+                <div class="p-4 border rounded-lg shadow-sm bg-gray-50">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Import Expenses</h3>
+                    <p class="text-gray-600 text-sm text-center mb-3">Paste your expense data in JSON format below and click "Import".</p>
+                    <textarea id="importDataTextArea" rows="6"
+                              class="w-full p-3 border rounded-lg focus:ring-blue-400 focus:border-blue-400 text-gray-800 resize-y"
+                              placeholder='Example: [{"date": "YYYY-MM-DD", "category": "Food", "amount": 50.00, "description": "Coffee", "paymentMethod": "Cash"}]'></textarea>
+                    <div class="flex justify-center mt-3">
+                        <button type="button" id="importButton"
+                                class="bg-green-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75">
+                            Import Data
+                        </button>
+                    </div>
+                    <div id="importMessageBox" class="text-center mt-2 font-medium hidden"></div>
+                </div>
+
+                <!-- Export Data Section -->
+                <div class="p-4 border rounded-lg shadow-sm bg-gray-50">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Export Expenses</h3>
+                    <p class="text-gray-600 text-sm text-center mb-3">Copy your current expense data below to save it as a backup.</p>
+                    <textarea id="exportDataTextArea" rows="6" readonly
+                              class="w-full p-3 border rounded-lg bg-gray-100 text-gray-800 resize-y cursor-text"></textarea>
+                    <div class="flex justify-center mt-3 space-x-3">
+                        <button type="button" id="copyExportDataButton"
+                                class="bg-blue-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                            Copy Data
+                        </button>
+                        <button type="button" id="downloadExportDataButton"
+                                class="bg-indigo-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75">
+                            Download JSON
+                        </button>
+                    </div>
+                    <div id="exportMessageBox" class="text-center mt-2 font-medium hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Expenses Section -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Your Expenses</h2>
+            <div class="overflow-x-auto rounded-lg shadow-inner border border-gray-300">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Expenses will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-right">
+                <span class="text-lg font-semibold text-gray-700">Total Spent: </span>
+                <span id="totalSpent" class="text-2xl font-extrabold text-blue-600">$0.00</span>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Spending Visualizations</h2>
+            <div class="flex flex-wrap justify-center mb-6 gap-4">
+                <div class="flex items-center">
+                    <label for="dateRangeFilter" class="block text-gray-700 text-sm font-medium mr-3">View:</label>
+                    <select id="dateRangeFilter"
+                            class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                        <option value="all">All Time</option>
+                        <option value="7days">Last 7 Days</option>
+                        <option value="30days">Last 30 Days</option>
+                        <option value="90days">Last 90 Days</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                <div id="customDateRange" class="flex items-center gap-4" style="display: none;">
+                    <label for="startDate" class="block text-gray-700 text-sm font-medium">From:</label>
+                    <input type="date" id="startDate"
+                           class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    <label for="endDate" class="block text-gray-700 text-sm font-medium">To:</label>
+                    <input type="date" id="endDate"
+                           class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    <button type="button" id="applyCustomFilter"
+                            class="bg-blue-500 text-white font-bold py-2 px-5 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                        Apply
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="p-4 border rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Category (Pie Chart)</h3>
+                    <canvas id="pieChartCanvas"></canvas>
+                </div>
+                <div class="p-4 border rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Category (Bar Chart)</h3>
+                    <canvas id="barChartCanvas"></canvas>
+                </div>
+                <div class="p-4 border rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Payment Method (Bar Chart)</h3>
+                    <canvas id="paymentMethodChartCanvas"></canvas>
+                </div>
+                <div class="lg:col-span-2 p-4 border rounded-lg shadow-sm">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Total Spending Over Time (Line Graph)</h3>
+                    <canvas id="lineChartCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const expenseForm = document.getElementById('expenseForm');
+        const formTitle = document.getElementById('formTitle');
+        const dateInput = document.getElementById('date');
+        const categoryInput = document.getElementById('category');
+        const amountInput = document.getElementById('amount');
+        const descriptionInput = document.getElementById('description');
+        const paymentMethodInput = document.getElementById('paymentMethod');
+        const expenseTableBody = document.getElementById('expenseTableBody');
+        const totalSpentElement = document.getElementById('totalSpent');
+        const messageBox = document.getElementById('messageBox');
+        const submitButton = document.getElementById('submitButton');
+        const cancelEditButton = document.getElementById('cancelEditButton');
+        const importDataTextArea = document.getElementById('importDataTextArea');
+        const importButton = document.getElementById('importButton');
+        const importMessageBox = document.getElementById('importMessageBox');
+        const exportDataTextArea = document.getElementById('exportDataTextArea'); // New: Export textarea
+        const copyExportDataButton = document.getElementById('copyExportDataButton'); // New: Copy button
+        const downloadExportDataButton = document.getElementById('downloadExportDataButton'); // New: Download button
+        const exportMessageBox = document.getElementById('exportMessageBox'); // New: Export message box
+        const dateRangeFilter = document.getElementById('dateRangeFilter');
+        const customDateRange = document.getElementById('customDateRange');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const applyCustomFilterButton = document.getElementById('applyCustomFilter');
+
+        // Chart instances to manage updates
+        let pieChartInstance = null;
+        let barChartInstance = null;
+        let lineChartInstance = null;
+        let paymentMethodChartInstance = null;
+
+        // State for editing
+        let editingIndex = -1;
+
+        // Set today's date as default for the add expense form
+        dateInput.value = new Date().toISOString().slice(0, 10);
+
+        /**
+         * Generates a random color for chart visualization.
+         * @returns {string} A random RGBA color string.
+         */
+        function getRandomColor() {
+            const r = Math.floor(Math.random() * 200);
+            const g = Math.floor(Math.random() * 200);
+            const b = Math.floor(Math.random() * 200);
+            return `rgba(${r}, ${g}, ${b}, 0.6)`;
+        }
+
+        /**
+         * Shows a temporary message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success', 'error', or 'info' for styling.
+         * @param {HTMLElement} targetMessageBox - The specific message box element to use.
+         */
+        function showMessage(message, type, targetMessageBox = messageBox) {
+            targetMessageBox.textContent = message;
+            targetMessageBox.classList.remove('hidden', 'bg-red-500', 'bg-green-500', 'bg-blue-500', 'text-white', 'text-gray-800', 'bg-gray-200');
+            targetMessageBox.classList.add('p-2', 'rounded-md');
+
+            if (type === 'success') {
+                targetMessageBox.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                targetMessageBox.classList.add('bg-red-500', 'text-white');
+            } else if (type === 'info') {
+                targetMessageBox.classList.add('bg-blue-500', 'text-white');
+            } else {
+                targetMessageBox.classList.add('bg-gray-200', 'text-gray-800');
+            }
+
+            setTimeout(() => {
+                targetMessageBox.classList.add('hidden');
+                targetMessageBox.classList.remove('bg-red-500', 'bg-green-500', 'bg-blue-500', 'text-white', 'text-gray-800', 'p-2', 'rounded-md', 'bg-gray-200');
+            }, 3000);
+        }
+
+        /**
+         * Loads expenses from localStorage.
+         * @returns {Array<Object>} An array of expense objects.
+         */
+        function loadExpenses() {
+            try {
+                const expensesJson = localStorage.getItem('spendingTrackerExpenses');
+                return expensesJson ? JSON.parse(expensesJson) : [];
+            } catch (e) {
+                console.error("Error loading expenses from localStorage:", e);
+                showMessage("Error loading data.", "error");
+                return [];
+            }
+        }
+
+        /**
+         * Saves expenses to localStorage.
+         * @param {Array<Object>} expenses - The array of expense objects to save.
+         */
+        function saveExpenses(expenses) {
+            try {
+                localStorage.setItem('spendingTrackerExpenses', JSON.stringify(expenses));
+                showMessage("Expenses saved!", "success");
+            } catch (e) {
+                console.error("Error saving expenses to localStorage:", e);
+                showMessage("Error saving data.", "error");
+            }
+        }
+
+        /**
+         * Filters expenses based on the selected date range or custom dates.
+         * @param {Array<Object>} allExpenses - The full list of expenses.
+         * @param {string} range - The selected date range (e.g., '7days', 'custom', 'all').
+         * @param {string} customStart - Optional custom start date (YYYY-MM-DD).
+         * @param {string} customEnd - Optional custom end date (YYYY-MM-DD).
+         * @returns {Array<Object>} Filtered expenses.
+         */
+        function filterExpensesByDateRange(allExpenses, range, customStart = null, customEnd = null) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let startDate, endDate;
+
+            if (range === 'custom') {
+                startDate = customStart ? new Date(customStart) : null;
+                endDate = customEnd ? new Date(customEnd) : null;
+
+                // Validate custom dates
+                if (startDate && isNaN(startDate.getTime())) {
+                    showMessage("Invalid custom start date.", "error", messageBox);
+                    return [];
+                }
+                if (endDate && isNaN(endDate.getTime())) {
+                    showMessage("Invalid custom end date.", "error", messageBox);
+                    return [];
+                }
+                if (startDate && endDate && startDate > endDate) {
+                    showMessage("Custom start date cannot be after end date.", "error", messageBox);
+                    return [];
+                }
+            } else if (range === '7days') {
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - 7);
+                endDate = today;
+            } else if (range === '30days') {
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - 30);
+                endDate = today;
+            } else if (range === '90days') {
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - 90);
+                endDate = today;
+            } else { // 'all' or fallback
+                return allExpenses;
+            }
+
+            return allExpenses.filter(expense => {
+                try {
+                    const expenseDate = new Date(expense.date);
+                    expenseDate.setHours(0, 0, 0, 0);
+
+                    const isAfterStart = startDate ? expenseDate >= startDate : true;
+                    const isBeforeEnd = endDate ? expenseDate <= endDate : true;
+
+                    return isAfterStart && isBeforeEnd;
+                } catch (e) {
+                    console.warn(`Skipping expense with invalid date format during filtering: ${expense.date}`);
+                    return false;
+                }
+            });
+        }
+
+        /**
+         * Renders the expenses table and updates the total spent.
+         * Also triggers chart rendering.
+         * @param {Array<Object>} expenses - The array of expense objects to render (all loaded, not filtered for table display).
+         */
+        function renderExpenses(allLoadedExpenses) {
+            expenseTableBody.innerHTML = '';
+            let total = 0;
+
+            if (allLoadedExpenses.length === 0) {
+                expenseTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            No expenses recorded yet. Start adding some!
+                        </td>
+                    </tr>
+                `;
+            } else {
+                allLoadedExpenses.forEach((expense, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 transition-colors duration-200';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${expense.date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expense.category}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">$${expense.amount.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 break-words max-w-xs overflow-hidden text-ellipsis">${expense.description || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expense.paymentMethod || 'N/A'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex space-x-2 justify-end">
+                            <button data-index="${index}" class="edit-btn text-blue-600 hover:text-blue-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 rounded-full p-2">
+                                Edit
+                            </button>
+                            <button data-index="${index}" class="delete-btn text-red-600 hover:text-red-900 font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 rounded-full p-2">
+                                Delete
+                            </button>
+                        </td>
+                    `;
+                    expenseTableBody.appendChild(row);
+                    total += expense.amount;
+                });
+            }
+
+            totalSpentElement.textContent = `$${total.toFixed(2)}`;
+            addListeners();
+            // Filter expenses for charts based on current filter selection
+            const selectedRange = dateRangeFilter.value;
+            const customStart = startDateInput.value;
+            const customEnd = endDateInput.value;
+            const filteredExpensesForCharts = filterExpensesByDateRange(allLoadedExpenses, selectedRange, customStart, customEnd);
+            renderCharts(filteredExpensesForCharts); // Pass filtered expenses to chart renderer
+        }
+
+        /**
+         * Adds click listeners to delete and edit buttons.
+         */
+        function addListeners() {
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.onclick = (event) => {
+                    const indexToDelete = parseInt(event.target.dataset.index);
+                    deleteExpense(indexToDelete);
+                };
+            });
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.onclick = (event) => {
+                    const indexToEdit = parseInt(event.target.dataset.index);
+                    startEditing(indexToEdit);
+                };
+            });
+        }
+
+        /**
+         * Starts the editing process by populating the form.
+         * @param {number} index - The index of the expense to edit.
+         */
+        function startEditing(index) {
+            let expenses = loadExpenses();
+            if (index >= 0 && index < expenses.length) {
+                const expenseToEdit = expenses[index];
+                dateInput.value = expenseToEdit.date;
+                categoryInput.value = expenseToEdit.category;
+                amountInput.value = expenseToEdit.amount;
+                descriptionInput.value = expenseToEdit.description;
+                paymentMethodInput.value = expenseToEdit.paymentMethod || '';
+
+                formTitle.textContent = "Edit Expense";
+                submitButton.textContent = "Update Expense";
+                cancelEditButton.classList.remove('hidden');
+                editingIndex = index;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                showMessage("Error: Expense not found for editing.", "error");
+            }
+        }
+
+        /**
+         * Resets the form and editing state.
+         */
+        function resetFormAndState() {
+            expenseForm.reset();
+            dateInput.value = new Date().toISOString().slice(0, 10);
+            formTitle.textContent = "Add New Expense";
+            submitButton.textContent = "Add Expense";
+            cancelEditButton.classList.add('hidden');
+            editingIndex = -1;
+        }
+
+        /**
+         * Deletes an expense from the list.
+         * @param {number} index - The index of the expense to delete.
+         */
+        function deleteExpense(index) {
+            let expenses = loadExpenses();
+            if (index >= 0 && index < expenses.length) {
+                expenses.splice(index, 1);
+                saveExpenses(expenses);
+                renderExpenses(loadExpenses()); // Re-render table and charts with all data, then charts filter it
+                resetFormAndState();
+                showMessage("Expense deleted!", "success");
+            } else {
+                showMessage("Error: Expense not found.", "error");
+            }
+        }
+
+        // Event Listener for Add/Update Expense Form
+        expenseForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const date = dateInput.value;
+            const category = categoryInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            const description = descriptionInput.value.trim();
+            const paymentMethod = paymentMethodInput.value;
+
+            if (!date || !category || isNaN(amount) || amount <= 0 || !paymentMethod) {
+                showMessage("Please fill in all required fields (Date, Category, Amount, Payment Method) with valid values.", "error");
+                return;
+            }
+
+            let expenses = loadExpenses();
+            const updatedExpense = { date, category, amount, description, paymentMethod };
+
+            if (editingIndex !== -1) {
+                expenses[editingIndex] = updatedExpense;
+                showMessage("Expense updated!", "success");
+            } else {
+                expenses.push(updatedExpense);
+                showMessage("Expense added!", "success");
+            }
+
+            saveExpenses(expenses);
+            renderExpenses(loadExpenses()); // Re-render table and charts with all data, then charts filter it
+            resetFormAndState();
+            amountInput.focus();
+        });
+
+        // Event Listener for Cancel Edit Button
+        cancelEditButton.addEventListener('click', () => {
+            resetFormAndState();
+            showMessage("Edit cancelled.", "info");
+        });
+
+        /* --- Import Data Functionality --- */
+        importButton.addEventListener('click', () => {
+            const dataToImport = importDataTextArea.value.trim();
+            if (!dataToImport) {
+                showMessage("Please paste some data to import.", "info", importMessageBox);
+                return;
+            }
+
+            try {
+                const newExpenses = JSON.parse(dataToImport);
+
+                if (!Array.isArray(newExpenses)) {
+                    showMessage("Invalid data format. Please paste a JSON array of expenses.", "error", importMessageBox);
+                    return;
+                }
+
+                let currentExpenses = loadExpenses();
+                let importedCount = 0;
+                let skippedCount = 0;
+
+                newExpenses.forEach(expense => {
+                    if (expense.date && expense.category && !isNaN(parseFloat(expense.amount)) && parseFloat(expense.amount) > 0 && expense.paymentMethod) {
+                        currentExpenses.push({
+                            date: expense.date,
+                            category: expense.category.trim(),
+                            amount: parseFloat(expense.amount),
+                            description: expense.description ? expense.description.trim() : '',
+                            paymentMethod: expense.paymentMethod
+                        });
+                        importedCount++;
+                    } else {
+                        console.warn("Skipped invalid expense entry during import:", expense);
+                        skippedCount++;
+                    }
+                });
+
+                saveExpenses(currentExpenses);
+                renderExpenses(loadExpenses());
+                importDataTextArea.value = ''; // Clear textarea after import
+                showMessage(`Import successful! Added ${importedCount} expenses. Skipped ${skippedCount} invalid entries.`, "success", importMessageBox);
+
+            } catch (e) {
+                console.error("Error parsing imported data:", e);
+                showMessage("Invalid JSON format. Please check your data.", "error", importMessageBox);
+            }
+        });
+
+        /* --- Export Data Functionality --- */
+        function updateExportDataTextArea() {
+            const allExpenses = loadExpenses();
+            exportDataTextArea.value = JSON.stringify(allExpenses, null, 2); // Pretty print JSON
+        }
+
+        copyExportDataButton.addEventListener('click', () => {
+            updateExportDataTextArea(); // Ensure data is fresh
+            if (exportDataTextArea.value) {
+                // Select the text area content
+                exportDataTextArea.select();
+                exportDataTextArea.setSelectionRange(0, 99999); // For mobile devices
+
+                try {
+                    // Use document.execCommand('copy') as navigator.clipboard.writeText()
+                    // might not work reliably in all iframe/browser environments.
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showMessage("Data copied to clipboard!", "success", exportMessageBox);
+                    } else {
+                        throw new Error("Copy command failed.");
+                    }
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    showMessage("Failed to copy data. Please manually select and copy.", "error", exportMessageBox);
+                }
+            } else {
+                showMessage("No data to copy.", "info", exportMessageBox);
+            }
+        });
+
+        downloadExportDataButton.addEventListener('click', () => {
+            updateExportDataTextArea(); // Ensure data is fresh
+            const dataToDownload = exportDataTextArea.value;
+            if (dataToDownload) {
+                const blob = new Blob([dataToDownload], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `spending_tracker_data_${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage("Data downloaded as JSON!", "success", exportMessageBox);
+            } else {
+                showMessage("No data to download.", "info", exportMessageBox);
+            }
+        });
+
+        /* --- Charting Functions --- */
+
+        /**
+         * Destroys existing Chart.js instances to prevent memory leaks and rendering issues.
+         */
+        function destroyCharts() {
+            if (pieChartInstance) pieChartInstance.destroy();
+            if (barChartInstance) barChartInstance.destroy();
+            if (lineChartInstance) lineChartInstance.destroy();
+            if (paymentMethodChartInstance) paymentMethodChartInstance.destroy();
+        }
+
+        /**
+         * Main function to render all charts. Called after any data change.
+         * @param {Array<Object>} expensesToChart - The *already filtered* list of expenses for charting.
+         */
+        function renderCharts(expensesToChart) {
+            destroyCharts();
+
+            if (expensesToChart.length === 0) {
+                return;
+            }
+
+            const categoryData = prepareCategoryData(expensesToChart);
+            renderPieChart(categoryData);
+            renderBarChart(categoryData);
+
+            const paymentMethodData = preparePaymentMethodData(expensesToChart);
+            renderPaymentMethodChart(paymentMethodData);
+
+            const timeData = prepareTimeData(expensesToChart);
+            renderLineChart(timeData);
+        }
+
+        /**
+         * Prepares data for category-based charts.
+         * @param {Array<Object>} expenses - The list of expenses.
+         * @returns {Object} An object with labels (categories) and data (amounts).
+         */
+        function prepareCategoryData(expenses) {
+            const categoryMap = {};
+            expenses.forEach(expense => {
+                const category = expense.category.toLowerCase();
+                categoryMap[category] = (categoryMap[category] || 0) + expense.amount;
+            });
+
+            const labels = Object.keys(categoryMap);
+            const data = Object.values(categoryMap);
+            const backgroundColors = labels.map(() => getRandomColor());
+
+            return { labels, data, backgroundColors };
+        }
+
+        /**
+         * Prepares data for payment method chart.
+         * @param {Array<Object>} expenses - The list of expenses.
+         * @returns {Object} An object with labels (payment methods) and data (amounts).
+         */
+        function preparePaymentMethodData(expenses) {
+            const methodMap = {};
+            expenses.forEach(expense => {
+                const method = expense.paymentMethod || 'Unknown';
+                methodMap[method] = (methodMap[method] || 0) + expense.amount;
+            });
+
+            const labels = Object.keys(methodMap);
+            const data = Object.values(methodMap);
+            const backgroundColors = labels.map(() => getRandomColor());
+
+            return { labels, data, backgroundColors };
+        }
+
+        /**
+         * Renders the Pie Chart.
+         * @param {Object} data - Prepared category data (labels, data, backgroundColors).
+         */
+        function renderPieChart({ labels, data, backgroundColors }) {
+            const ctx = document.getElementById('pieChartCanvas').getContext('2d');
+            pieChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                }
+                            }
+                        },
+                        title: {
+                            display: false,
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Renders the Bar Chart for categories.
+         * @param {Object} data - Prepared category data (labels, data, backgroundColors).
+         */
+        function renderBarChart({ labels, data, backgroundColors }) {
+            const ctx = document.getElementById('barChartCanvas').getContext('2d');
+            barChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Amount Spent ($)',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Renders the Bar Chart for payment methods.
+         * @param {Object} data - Prepared payment method data (labels, data, backgroundColors).
+         */
+        function renderPaymentMethodChart({ labels, data, backgroundColors }) {
+            const ctx = document.getElementById('paymentMethodChartCanvas').getContext('2d');
+            paymentMethodChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Amount Spent ($)',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Prepares data for time-based charts (Line Graph).
+         * Aggregates total spending per day and sorts by date.
+         * @param {Array<Object>} expenses - The list of expenses.
+         * @returns {Object} An object with labels (dates) and data (total daily spending).
+         */
+        function prepareTimeData(expenses) {
+            const dailySpending = {};
+            const validExpenses = expenses.filter(expense => {
+                try {
+                    new Date(expense.date).toISOString().slice(0, 10);
+                    return true;
+                } catch (e) {
+                    console.warn(`Skipping expense with invalid date format: ${expense.date}`);
+                    return false;
+                }
+            });
+
+            validExpenses.forEach(expense => {
+                const date = expense.date;
+                dailySpending[date] = (dailySpending[date] || 0) + expense.amount;
+            });
+
+            const sortedDates = Object.keys(dailySpending).sort();
+            const data = sortedDates.map(date => dailySpending[date]);
+
+            return { labels: sortedDates, data: data };
+        }
+
+        /**
+         * Renders the Line Graph.
+         * @param {Object} data - Prepared time-based data (labels, data).
+         */
+        function renderLineChart({ labels, data }) {
+            const ctx = document.getElementById('lineChartCanvas').getContext('2d');
+            lineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Daily Spending ($)',
+                        data: data,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
+                        fill: true,
+                        pointBackgroundColor: 'rgb(75, 192, 192)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(75, 192, 192)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                }
+                            }
+                        },
+                        title: {
+                            display: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount ($)',
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                font: {
+                                    family: 'Inter'
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event Listeners for Date Range Filtering
+        dateRangeFilter.addEventListener('change', () => {
+            if (dateRangeFilter.value === 'custom') {
+                customDateRange.style.display = 'flex'; // Show custom date inputs
+                // Set default custom range to encompass all current data, or a sensible default
+                const allExpenses = loadExpenses();
+                if (allExpenses.length > 0) {
+                    const dates = allExpenses.map(e => e.date).sort();
+                    startDateInput.value = dates[0];
+                    endDateInput.value = dates[dates.length - 1];
+                } else {
+                    startDateInput.value = '';
+                    endDateInput.value = '';
+                }
+            } else {
+                customDateRange.style.display = 'none'; // Hide custom date inputs
+                renderExpenses(loadExpenses()); // Re-render charts with selected predefined range
+            }
+        });
+
+        applyCustomFilterButton.addEventListener('click', () => {
+            // Trigger chart re-render with custom dates
+            renderExpenses(loadExpenses());
+        });
+
+
+        // Initial render when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            renderExpenses(loadExpenses());
+            // Ensure export data text area is populated on load
+            updateExportDataTextArea();
+        });
+    </script>
+</body>
+</html>
