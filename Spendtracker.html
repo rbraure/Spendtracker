@@ -37,168 +37,226 @@
             💰 Modern Spending Tracker
         </h1>
 
-        <!-- Add/Edit Expense Section -->
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-xl shadow-lg">
-            <h2 id="formTitle" class="text-2xl font-bold text-white mb-5 text-center">Add New Expense</h2>
-            <form id="expenseForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="date" class="block text-white text-sm font-medium mb-1">Date</label>
-                    <input type="date" id="date" required
-                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                </div>
-                <div>
-                    <label for="category" class="block text-white text-sm font-medium mb-1">Category</label>
-                    <input type="text" id="category" placeholder="e.g., Food, Transport" required
-                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                </div>
-                <div>
-                    <label for="amount" class="block text-white text-sm font-medium mb-1">Amount</label>
-                    <input type="number" id="amount" placeholder="e.g., 25.50" step="0.01" required
-                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                </div>
-                <div>
-                    <label for="description" class="block text-white text-sm font-medium mb-1">Description</label>
-                    <input type="text" id="description" placeholder="Optional notes"
-                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                </div>
-                <div>
-                    <label for="paymentMethod" class="block text-white text-sm font-medium mb-1">Payment Method</label>
-                    <select id="paymentMethod" required
-                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                        <option value="">Select Method</option>
-                        <option value="Credit Card">Credit Card</option>
-                        <option value="Prompt Payment">Prompt Payment</option>
-                        <option value="Cash">Cash</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
-                <div class="md:col-span-2 flex justify-center mt-4 space-x-4">
-                    <button type="submit" id="submitButton"
-                            class="bg-white text-blue-600 font-bold py-3 px-8 rounded-full shadow-md hover:bg-gray-100 hover:text-blue-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75">
-                        Add Expense
-                    </button>
-                    <button type="button" id="cancelEditButton"
-                            class="bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full shadow-md hover:bg-gray-400 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 hidden">
-                        Cancel Edit
-                    </button>
-                </div>
-            </form>
-            <div id="messageBox" class="text-white text-center mt-4 font-medium hidden"></div>
+        <!-- User Info and Logout Button (Visible after login) -->
+        <div id="userInfoSection" class="hidden text-center bg-gray-100 p-4 rounded-lg shadow-sm">
+            <p class="text-gray-700 text-lg font-semibold mb-2">Welcome, <span id="userEmail" class="text-blue-600"></span>!</p>
+            <p class="text-sm text-gray-500 mb-4">User ID: <span id="userIdDisplay" class="font-mono text-xs bg-gray-200 px-2 py-1 rounded"></span></p>
+            <button id="logoutButton" class="bg-red-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75">
+                Logout
+            </button>
         </div>
 
-        <!-- Import/Export Data Section -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Manage Data (Local Storage)</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Import Data Section -->
-                <div class="p-4 border rounded-lg shadow-sm bg-gray-50">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Import Expenses (Local)</h3>
-                    <p class="text-gray-600 text-sm text-center mb-3">Paste JSON data to load into your browser's local storage.</p>
-                    <textarea id="importDataTextArea" rows="6"
-                              class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800 resize-y"
-                              placeholder='Example: [{"date": "YYYY-MM-DD", "category": "Food", "amount": 50.00, "description": "Coffee", "paymentMethod": "Cash"}]'></textarea>
-                    <div class="flex justify-center mt-3">
-                        <button type="button" id="importButton"
-                                class="bg-green-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75">
-                            Import Data
+        <!-- Authentication Forms (Visible before login) -->
+        <div id="authSection" class="space-y-6">
+            <div class="bg-blue-100 p-6 rounded-xl shadow-lg border border-blue-200 text-center">
+                <h2 class="text-2xl font-bold text-blue-800 mb-5">Sign Up or Log In</h2>
+                <div class="flex justify-center space-x-4 mb-6">
+                    <button id="showRegisterFormBtn" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                        Register
+                    </button>
+                    <button id="showLoginFormBtn" class="bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-full shadow-md hover:bg-gray-400 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75">
+                        Login
+                    </button>
+                </div>
+
+                <!-- Registration Form -->
+                <form id="registerForm" class="space-y-4 hidden">
+                    <div>
+                        <input type="email" id="registerEmail" placeholder="Email" required
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <div>
+                        <input type="password" id="registerPassword" placeholder="Password (min 6 characters)" required
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <button type="submit" class="bg-green-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75">
+                        Register
+                    </button>
+                </form>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <input type="email" id="loginEmail" placeholder="Email" required
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <div>
+                        <input type="password" id="loginPassword" placeholder="Password" required
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                        Log In
+                    </button>
+                </form>
+                <div id="authMessageBox" class="text-center mt-4 font-medium hidden"></div>
+            </div>
+        </div>
+
+        <!-- Main App Content (Hidden until login) -->
+        <div id="mainAppContent" class="hidden space-y-8">
+            <!-- Add/Edit Expense Section -->
+            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-xl shadow-lg">
+                <h2 id="formTitle" class="text-2xl font-bold text-white mb-5 text-center">Add New Expense</h2>
+                <form id="expenseForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="date" class="block text-white text-sm font-medium mb-1">Date</label>
+                        <input type="date" id="date" required
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <div>
+                        <label for="category" class="block text-white text-sm font-medium mb-1">Category</label>
+                        <input type="text" id="category" placeholder="e.g., Food, Transport" required
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <div>
+                        <label for="amount" class="block text-white text-sm font-medium mb-1">Amount</label>
+                        <input type="number" id="amount" placeholder="e.g., 25.50" step="0.01" required
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <div>
+                        <label for="description" class="block text-white text-sm font-medium mb-1">Description</label>
+                        <input type="text" id="description" placeholder="Optional notes"
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                    </div>
+                    <div>
+                        <label for="paymentMethod" class="block text-white text-sm font-medium mb-1">Payment Method</label>
+                        <select id="paymentMethod" required
+                                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                            <option value="">Select Method</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Prompt Payment">Prompt Payment</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 flex justify-center mt-4 space-x-4">
+                        <button type="submit" id="submitButton"
+                                class="bg-white text-blue-600 font-bold py-3 px-8 rounded-full shadow-md hover:bg-gray-100 hover:text-blue-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75">
+                            Add Expense
+                        </button>
+                        <button type="button" id="cancelEditButton"
+                                class="bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-full shadow-md hover:bg-gray-400 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75 hidden">
+                            Cancel Edit
                         </button>
                     </div>
-                    <div id="importMessageBox" class="text-center mt-2 font-medium hidden"></div>
-                </div>
+                </form>
+                <div id="messageBox" class="text-white text-center mt-4 font-medium hidden"></div>
+            </div>
 
-                <!-- Export Data Section -->
-                <div class="p-4 border rounded-lg shadow-sm bg-gray-50">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Export Expenses (Local)</h3>
-                    <p class="text-gray-600 text-sm text-center mb-3">Copy your local expense data below for backup.</p>
-                    <textarea id="exportDataTextArea" rows="6" readonly
-                              class="w-full p-3 border rounded-lg bg-gray-100 text-gray-800 resize-y cursor-text"></textarea>
-                    <div class="flex justify-center mt-3 space-x-3">
-                        <button type="button" id="copyExportDataButton"
-                                class="bg-blue-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
-                            Copy Data
-                        </button>
-                        <button type="button" id="downloadExportDataButton"
-                                class="bg-indigo-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75">
-                            Download JSON
+            <!-- Import/Export Data Section -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Manage Data (Local Storage)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Import Data Section -->
+                    <div class="p-4 border rounded-lg shadow-sm bg-gray-50">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Import Expenses (Local)</h3>
+                        <p class="text-gray-600 text-sm text-center mb-3">Paste JSON data to load into your browser's local storage.</p>
+                        <textarea id="importDataTextArea" rows="6"
+                                  class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800 resize-y"
+                                  placeholder='Example: [{"date": "YYYY-MM-DD", "category": "Food", "amount": 50.00, "description": "Coffee", "paymentMethod": "Cash"}]'></textarea>
+                        <div class="flex justify-center mt-3">
+                            <button type="button" id="importButton"
+                                    class="bg-green-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75">
+                                Import Data
+                            </button>
+                        </div>
+                        <div id="importMessageBox" class="text-center mt-2 font-medium hidden"></div>
+                    </div>
+
+                    <!-- Export Data Section -->
+                    <div class="p-4 border rounded-lg shadow-sm bg-gray-50">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Export Expenses (Local)</h3>
+                        <p class="text-gray-600 text-sm text-center mb-3">Copy your local expense data below for backup.</p>
+                        <textarea id="exportDataTextArea" rows="6" readonly
+                                  class="w-full p-3 border rounded-lg bg-gray-100 text-gray-800 resize-y cursor-text"></textarea>
+                        <div class="flex justify-center mt-3 space-x-3">
+                            <button type="button" id="copyExportDataButton"
+                                    class="bg-blue-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                                Copy Data
+                            </button>
+                            <button type="button" id="downloadExportDataButton"
+                                    class="bg-indigo-500 text-white font-bold py-2 px-6 rounded-full shadow-md hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75">
+                                Download JSON
+                            </button>
+                        </div>
+                        <div id="exportMessageBox" class="text-center mt-2 font-medium hidden"></div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-4 text-center">Note: These Import/Export functions operate on your browser's *local* storage. For synced data, use the cloud-based app once configured.</p>
+            </div>
+
+
+            <!-- View Expenses Section -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Your Expenses</h2>
+                <div class="overflow-x-auto rounded-lg shadow-inner border border-gray-300">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Date</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Expenses will be loaded here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-right">
+                    <span class="text-lg font-semibold text-gray-700">Total Spent: </span>
+                    <span id="totalSpent" class="text-2xl font-extrabold text-blue-600">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Spending Visualizations</h2>
+                <div class="flex flex-wrap justify-center mb-6 gap-4">
+                    <div class="flex items-center">
+                        <label for="dateRangeFilter" class="block text-gray-700 text-sm font-medium mr-3">View:</label>
+                        <select id="dateRangeFilter"
+                                class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                            <option value="all">All Time</option>
+                            <option value="7days">Last 7 Days</option>
+                            <option value="30days">Last 30 Days</option>
+                            <option value="90days">Last 90 Days</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <div id="customDateRange" class="flex items-center gap-4" style="display: none;">
+                        <label for="startDate" class="block text-gray-700 text-sm font-medium">From:</label>
+                        <input type="date" id="startDate"
+                               class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                        <label for="endDate" class="block text-gray-700 text-sm font-medium">To:</label>
+                        <input type="date" id="endDate"
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
+                        <button type="button" id="applyCustomFilter"
+                                class="bg-blue-500 text-white font-bold py-2 px-5 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                            Apply
                         </button>
                     </div>
-                    <div id="exportMessageBox" class="text-center mt-2 font-medium hidden"></div>
                 </div>
-            </div>
-            <p class="text-sm text-gray-600 mt-4 text-center">Note: These Import/Export functions operate on your browser's *local* storage. For synced data, use the cloud-based app once configured.</p>
-        </div>
-
-
-        <!-- View Expenses Section -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Your Expenses</h2>
-            <div class="overflow-x-auto rounded-lg shadow-inner border border-gray-300">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="expenseTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Expenses will be loaded here by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-right">
-                <span class="text-lg font-semibold text-gray-700">Total Spent: </span>
-                <span id="totalSpent" class="text-2xl font-extrabold text-blue-600">$0.00</span>
-            </div>
-        </div>
-
-        <!-- Charts Section -->
-        <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-800 mb-5 text-center">Spending Visualizations</h2>
-            <div class="flex flex-wrap justify-center mb-6 gap-4">
-                <div class="flex items-center">
-                    <label for="dateRangeFilter" class="block text-gray-700 text-sm font-medium mr-3">View:</label>
-                    <select id="dateRangeFilter"
-                            class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                        <option value="all">All Time</option>
-                        <option value="7days">Last 7 Days</option>
-                        <option value="30days">Last 30 Days</option>
-                        <option value="90days">Last 90 Days</option>
-                        <option value="custom">Custom Range</option>
-                    </select>
-                </div>
-                <div id="customDateRange" class="flex items-center gap-4" style="display: none;">
-                    <label for="startDate" class="block text-gray-700 text-sm font-medium">From:</label>
-                    <input type="date" id="startDate"
-                           class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                    <label for="endDate" class="block text-gray-700 text-sm font-medium">To:</label>
-                    <input type="date" id="endDate"
-                           class="px-4 py-2 rounded-lg border border-gray-300 focus:ring-blue-400 focus:border-blue-400 text-gray-800">
-                    <button type="button" id="applyCustomFilter"
-                            class="bg-blue-500 text-white font-bold py-2 px-5 rounded-full shadow-md hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
-                        Apply
-                    </button>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Category (Pie Chart)</h3>
-                    <canvas id="pieChartCanvas"></canvas>
-                </div>
-                <div class="p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Category (Bar Chart)</h3>
-                    <canvas id="barChartCanvas"></canvas>
-                </div>
-                <div class="p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Payment Method (Bar Chart)</h3>
-                    <canvas id="paymentMethodChartCanvas"></canvas>
-                </div>
-                <div class="lg:col-span-2 p-4 border rounded-lg shadow-sm">
-                    <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Total Spending Over Time (Line Graph)</h3>
-                    <canvas id="lineChartCanvas"></canvas>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="p-4 border rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Category (Pie Chart)</h3>
+                        <canvas id="pieChartCanvas"></canvas>
+                    </div>
+                    <div class="p-4 border rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Category (Bar Chart)</h3>
+                        <canvas id="barChartCanvas"></canvas>
+                    </div>
+                    <div class="p-4 border rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Spending by Payment Method (Bar Chart)</h3>
+                        <canvas id="paymentMethodChartCanvas"></canvas>
+                    </div>
+                    <div class="lg:col-span-2 p-4 border rounded-lg shadow-sm">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-3 text-center">Total Spending Over Time (Line Graph)</h3>
+                        <canvas id="lineChartCanvas"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -207,25 +265,42 @@
     <script type="module">
         // Import the functions you need from the Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"; // Updated SDK version
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Updated SDK version
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Updated SDK version
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"; // Firebase Auth SDK
 
         // Your web app's Firebase configuration
-        // !!! IMPORTANT: REPLACE WITH YOUR ACTUAL FIREBASE CONFIGURATION !!!
         const firebaseConfig = {
-  apiKey: "AIzaSyCeEQH1mmjXtxwx7VJQrE7-WrIHy35Sd2U",
-  authDomain: "my-spendingtracker.firebaseapp.com",
-  projectId: "my-spendingtracker",
-  storageBucket: "my-spendingtracker.firebasestorage.app",
-  messagingSenderId: "545474969573",
-  appId: "1:545474969573:web:e85a70584131eda798390c",
-  measurementId: "G-MRRGRFNKLT"
-};
+            apiKey: "AIzaSyCEQh1mmjXtxwx7VJQRE7-WrIHy35Sd2U",
+            authDomain: "my-spendingtracker.firebaseapp.com",
+            projectId: "my-spendingtracker",
+            storageBucket: "my-spendingtracker.firebasestorage.app",
+            messagingSenderId: "545474969573",
+            appId: "1:545474969573:web:e85a70584131eda798390c",
+            measurementId: "G-MRRGRFNKLT"
+        };
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app); // Get a reference to the Firestore database
+        const auth = getAuth(app);   // Get a reference to the Auth service
 
         // DOM elements
+        const userInfoSection = document.getElementById('userInfoSection');
+        const userEmailDisplay = document.getElementById('userEmail');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const logoutButton = document.getElementById('logoutButton');
+        const authSection = document.getElementById('authSection');
+        const showRegisterFormBtn = document.getElementById('showRegisterFormBtn');
+        const showLoginFormBtn = document.getElementById('showLoginFormBtn');
+        const registerForm = document.getElementById('registerForm');
+        const registerEmailInput = document.getElementById('registerEmail');
+        const registerPasswordInput = document.getElementById('registerPassword');
+        const loginForm = document.getElementById('loginForm');
+        const loginEmailInput = document.getElementById('loginEmail');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        const authMessageBox = document.getElementById('authMessageBox');
+        const mainAppContent = document.getElementById('mainAppContent');
+
         const expenseForm = document.getElementById('expenseForm');
         const formTitle = document.getElementById('formTitle');
         const dateInput = document.getElementById('date');
@@ -259,20 +334,10 @@
 
         // State for editing
         let editingDocId = null; // Changed from editingIndex to editingDocId (Firestore document ID)
+        let currentUserId = null; // Store current logged-in user's ID
 
         // Set today's date as default for the add expense form
         dateInput.value = new Date().toISOString().slice(0, 10);
-
-        /**
-         * Generates a random color for chart visualization.
-         * @returns {string} A random RGBA color string.
-         */
-        function getRandomColor() {
-            const r = Math.floor(Math.random() * 200);
-            const g = Math.floor(Math.random() * 200);
-            const b = Math.floor(Math.random() * 200);
-            return `rgba(${r}, ${g}, ${b}, 0.6)`;
-        }
 
         /**
          * Shows a temporary message in the message box.
@@ -300,6 +365,18 @@
                 targetMessageBox.classList.remove('bg-red-500', 'bg-green-500', 'bg-blue-500', 'text-white', 'text-gray-800', 'p-2', 'rounded-md', 'bg-gray-200');
             }, 3000);
         }
+
+        /**
+         * Generates a random color for chart visualization.
+         * @returns {string} A random RGBA color string.
+         */
+        function getRandomColor() {
+            const r = Math.floor(Math.random() * 200);
+            const g = Math.floor(Math.random() * 200);
+            const b = Math.floor(Math.random() * 200);
+            return `rgba(${r}, ${g}, ${b}, 0.6)`;
+        }
+
 
         /**
          * Renders the expenses table and updates the total spent.
@@ -359,7 +436,10 @@
             document.querySelectorAll('.delete-btn').forEach(button => {
                 button.onclick = (event) => {
                     const docIdToDelete = event.target.dataset.id;
-                    deleteExpense(docIdToDelete);
+                    // Confirm before deleting
+                    if (confirm("Are you sure you want to delete this expense?")) {
+                        deleteExpense(docIdToDelete);
+                    }
                 };
             });
             document.querySelectorAll('.edit-btn').forEach(button => {
@@ -412,20 +492,31 @@
          * @param {string} docId - The Firestore document ID of the expense to delete.
          */
         async function deleteExpense(docId) {
+            if (!currentUserId) {
+                showMessage("Please log in to delete expenses.", "error");
+                return;
+            }
             try {
-                await deleteDoc(doc(db, "expenses", docId));
+                // Ensure the expense belongs to the current user before deleting
+                // (Though security rules will also enforce this)
+                const docRef = doc(db, `users/${currentUserId}/expenses`, docId);
+                await deleteDoc(docRef);
                 showMessage("Expense deleted!", "success");
-                // The onSnapshot listener will handle re-rendering automatically
                 resetFormAndState(); // Reset form in case deleted item was being edited
             } catch (e) {
                 console.error("Error removing document: ", e);
-                showMessage("Error deleting expense from cloud.", "error");
+                showMessage(`Error deleting expense: ${e.message}`, "error");
             }
         }
 
         // Event Listener for Add/Update Expense Form
         expenseForm.addEventListener('submit', async (event) => {
             event.preventDefault();
+
+            if (!currentUserId) {
+                showMessage("Please log in to add/update expenses.", "error");
+                return;
+            }
 
             const date = dateInput.value;
             const category = categoryInput.value.trim();
@@ -438,24 +529,32 @@
                 return;
             }
 
-            const expenseData = { date, category, amount, description, paymentMethod };
+            const expenseData = {
+                date,
+                category,
+                amount,
+                description,
+                paymentMethod,
+                userId: currentUserId, // Store the user ID with the expense
+                timestamp: serverTimestamp() // Add a server-generated timestamp
+            };
 
             try {
                 if (editingDocId) {
                     // Update existing expense in Firestore
-                    await updateDoc(doc(db, "expenses", editingDocId), expenseData);
+                    const docRef = doc(db, `users/${currentUserId}/expenses`, editingDocId);
+                    await updateDoc(docRef, expenseData);
                     showMessage("Expense updated!", "success");
                 } else {
                     // Add new expense to Firestore
-                    await addDoc(collection(db, "expenses"), expenseData);
+                    await addDoc(collection(db, `users/${currentUserId}/expenses`), expenseData);
                     showMessage("Expense added!", "success");
                 }
-                // The onSnapshot listener will handle re-rendering automatically
                 resetFormAndState();
                 amountInput.focus();
             } catch (e) {
                 console.error("Error adding/updating document: ", e);
-                showMessage("Error saving expense to cloud.", "error");
+                showMessage(`Error saving expense: ${e.message}`, "error");
             }
         });
 
@@ -466,8 +565,12 @@
         });
 
         /* --- Local Storage Import/Export Data Functionality (Kept for local backup/migration) --- */
-        // NOTE: The Import button here will now ADD data to Firestore, not Local Storage.
         importButton.addEventListener('click', async () => {
+            if (!currentUserId) {
+                showMessage("Please log in to import expenses to your cloud data.", "error", importMessageBox);
+                return;
+            }
+
             const dataToImport = importDataTextArea.value.trim();
             if (!dataToImport) {
                 showMessage("Please paste some data to import.", "info", importMessageBox);
@@ -485,16 +588,18 @@
                 let importedCount = 0;
                 let skippedCount = 0;
 
-                // Add each expense to Firestore
-                for (const expense of newExpenses) {
+                // Add each expense to Firestore under the current user's collection
+                const batchPromises = newExpenses.map(async (expense) => {
                     if (expense.date && expense.category && !isNaN(parseFloat(expense.amount)) && parseFloat(expense.amount) > 0 && expense.paymentMethod) {
                         try {
-                            await addDoc(collection(db, "expenses"), {
+                            await addDoc(collection(db, `users/${currentUserId}/expenses`), {
                                 date: expense.date,
                                 category: expense.category.trim(),
                                 amount: parseFloat(expense.amount),
                                 description: expense.description ? expense.description.trim() : '',
-                                paymentMethod: expense.paymentMethod
+                                paymentMethod: expense.paymentMethod,
+                                userId: currentUserId,
+                                timestamp: serverTimestamp() // Add server timestamp for imported data
                             });
                             importedCount++;
                         } catch (e) {
@@ -505,10 +610,10 @@
                         console.warn("Skipped invalid expense entry during import:", expense);
                         skippedCount++;
                     }
-                }
+                });
+                await Promise.all(batchPromises); // Wait for all import operations to complete
 
                 importDataTextArea.value = ''; // Clear textarea after import
-                // onSnapshot will handle the re-render
                 showMessage(`Import successful! Added ${importedCount} expenses to cloud. Skipped ${skippedCount} invalid entries.`, "success", importMessageBox);
 
             } catch (e) {
@@ -521,7 +626,7 @@
             // This now exports data from Firestore via the expenses array from onSnapshot
             const allExpenses = window._allFirestoreExpenses || []; // Use the globally stored expenses
             exportDataTextArea.value = JSON.stringify(allExpenses.map(e => {
-                const { id, ...rest } = e; // Exclude Firestore's auto-generated 'id' for cleaner export
+                const { id, userId, timestamp, ...rest } = e; // Exclude Firestore's auto-generated 'id', userId and timestamp for cleaner export
                 return rest;
             }), null, 2); // Pretty print JSON
         }
@@ -967,35 +1072,154 @@
         });
 
 
-        // --- Firebase Real-time Listener ---
-        // This will automatically update the UI whenever data in Firestore changes
-        const q = query(collection(db, "expenses"), orderBy("date", "asc"));
-        onSnapshot(q, (querySnapshot) => {
-            const expenses = [];
-            querySnapshot.forEach((doc) => {
-                expenses.push({ id: doc.id, ...doc.data() });
-            });
-            window._allFirestoreExpenses = expenses; // Store expenses globally for filter and export
-            renderExpenses(expenses); // Re-render everything with the latest data
-            updateExportDataTextArea(); // Update the export textarea with the latest data
-        }, (error) => {
-            console.error("Error listening to Firestore: ", error);
-            // It's crucial to distinguish between 'unavailable' (network/rules) and other errors
-            if (error.code === 'unavailable') {
-                showMessage("Could not connect to Cloud Firestore. Please check your internet connection and Firebase security rules.", "error");
-            } else if (error.code === 'permission-denied') {
-                 showMessage("Permission denied for Firestore. Please check your Firebase security rules.", "error");
-            }
-             else {
-                showMessage(`Error syncing data: ${error.message}`, "error");
+        // --- Firebase Auth & Firestore Integration ---
+
+        // Firebase Auth listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in.
+                currentUserId = user.uid;
+                userEmailDisplay.textContent = user.email;
+                userIdDisplay.textContent = user.uid;
+
+                authSection.classList.add('hidden'); // Hide auth forms
+                userInfoSection.classList.remove('hidden'); // Show user info
+                mainAppContent.classList.remove('hidden'); // Show main app content
+
+                // Start listening to user-specific expenses
+                // Note: Security rules in Firestore are essential here to ensure
+                // users only access their own data. We'll set those up next.
+                const q = query(collection(db, `users/${currentUserId}/expenses`), orderBy("timestamp", "asc"));
+                onSnapshot(q, (querySnapshot) => {
+                    const expenses = [];
+                    querySnapshot.forEach((doc) => {
+                        expenses.push({ id: doc.id, ...doc.data() });
+                    });
+                    window._allFirestoreExpenses = expenses; // Store expenses globally for filter and export
+                    renderExpenses(expenses); // Re-render everything with the latest data
+                    updateExportDataTextArea(); // Update the export textarea with the latest data
+                }, (error) => {
+                    console.error("Error listening to Firestore: ", error);
+                    if (error.code === 'unavailable') {
+                        showMessage("Could not connect to Cloud Firestore. Please check your internet connection.", "error");
+                    } else if (error.code === 'permission-denied') {
+                         showMessage("Permission denied for Firestore. Please check your Firebase security rules. You can only view your own data.", "error");
+                    }
+                     else {
+                        showMessage(`Error syncing data: ${error.message}`, "error");
+                    }
+                });
+
+                // Clear any lingering auth messages
+                showMessage("", "info", authMessageBox);
+
+            } else {
+                // User is signed out.
+                currentUserId = null;
+                userEmailDisplay.textContent = '';
+                userIdDisplay.textContent = '';
+
+                authSection.classList.remove('hidden'); // Show auth forms
+                userInfoSection.classList.add('hidden'); // Hide user info
+                mainAppContent.classList.add('hidden'); // Hide main app content
+
+                // Clear expenses and charts when logged out
+                renderExpenses([]);
+                updateExportDataTextArea();
+                destroyCharts(); // Clear charts if any were rendered for previous user
+
+                // Optional: Show login form by default on logout
+                showLoginFormBtn.click();
             }
         });
 
-        // Initial render logic is now handled by the onSnapshot listener,
-        // so we don't need a separate DOMContentLoaded event for initial load.
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     renderExpenses(loadExpenses());
-        // });
+        // Event listener for Register button
+        showRegisterFormBtn.addEventListener('click', () => {
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            showRegisterFormBtn.classList.add('bg-blue-500', 'text-white');
+            showLoginFormBtn.classList.remove('bg-blue-500', 'text-white');
+            showLoginFormBtn.classList.add('bg-gray-300', 'text-gray-800');
+            registerEmailInput.focus();
+        });
+
+        // Event listener for Login button
+        showLoginFormBtn.addEventListener('click', () => {
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            showLoginFormBtn.classList.add('bg-blue-500', 'text-white');
+            showRegisterFormBtn.classList.remove('bg-blue-500', 'text-white');
+            showRegisterFormBtn.classList.add('bg-gray-300', 'text-gray-800');
+            loginEmailInput.focus();
+        });
+
+        // Handle Registration
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = registerEmailInput.value;
+            const password = registerPasswordInput.value;
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessage("Registration successful! You are now logged in.", "success", authMessageBox);
+                // onAuthStateChanged will handle UI update
+            } catch (error) {
+                console.error("Registration error:", error.code, error.message);
+                let errorMessage = "Registration failed. Please try again.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "This email is already in use. Please log in or use a different email.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Invalid email address.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "Password should be at least 6 characters.";
+                }
+                showMessage(errorMessage, "error", authMessageBox);
+            }
+        });
+
+        // Handle Login
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage("Login successful! Welcome back.", "success", authMessageBox);
+                // onAuthStateChanged will handle UI update
+            } catch (error) {
+                console.error("Login error:", error.code, error.message);
+                let errorMessage = "Login failed. Please check your email and password.";
+                if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Invalid email address.";
+                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Invalid email or password.";
+                }
+                showMessage(errorMessage, "error", authMessageBox);
+            }
+        });
+
+        // Handle Logout
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessage("Logged out successfully.", "success", authMessageBox);
+                // onAuthStateChanged will handle UI update
+            } catch (error) {
+                console.error("Logout error:", error.message);
+                showMessage("Logout failed. Please try again.", "error", authMessageBox);
+            }
+        });
+
+        // Initial setup for form visibility
+        // This is handled by onAuthStateChanged now, but good to have a default in place for first load
+        document.addEventListener('DOMContentLoaded', () => {
+            // No explicit action needed here, onAuthStateChanged will fire
+            // and determine initial state.
+            // Ensure date input has today's date
+            dateInput.value = new Date().toISOString().slice(0, 10);
+        });
+
     </script>
 </body>
 </html>
