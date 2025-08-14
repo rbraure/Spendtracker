@@ -319,6 +319,7 @@
             if (user) {
                 // User is signed in
                 currentUserId = user.uid;
+                console.log("Logged in user ID:", currentUserId);
                 userDisplay.textContent = `Welcome, ${user.email}`;
                 authSection.classList.add('hidden');
                 appSection.classList.remove('hidden');
@@ -327,6 +328,7 @@
             } else {
                 // User is signed out
                 currentUserId = null;
+                console.log("User logged out. currentUserId is:", currentUserId);
                 userDisplay.textContent = ''; // Clear user display
                 authSection.classList.remove('hidden');
                 appSection.classList.add('hidden');
@@ -343,7 +345,7 @@
                 showMessage("Please log in to add expenses.", "error", expenseMessageBox);
                 return;
             }
-
+            console.log("Attempting to save expense for user ID:", currentUserId);
             const date = expenseDate.value;
             const category = expenseCategory.value;
             const amount = parseFloat(expenseAmount.value);
