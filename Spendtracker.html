@@ -146,7 +146,6 @@
             </section>
         </main>
     </div>
-
     <script type="module">
         // Firebase SDK Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
@@ -163,25 +162,26 @@
             addDoc, 
             query, 
             where, 
-            orderBy, // We will sort in memory for simplicity to avoid index issues
             onSnapshot, 
             deleteDoc, 
             doc 
         } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
         // Your web app's Firebase configuration
-        // REPLACE THIS ENTIRE BLOCK WITH YOUR firebaseConfig FROM YOUR NEW FIREBASE PROJECT
+        // REPLACE THIS ENTIRE LINE WITH YOUR firebaseConfig OBJECT from your NEW Firebase Project (SpendtrackerNew)
         // Go to Firebase Console -> Project settings -> General -> "Your apps" section -> select your web app -> "Config"
-        // Example structure:
+        const firebaseConfig = YOUR_FIREBASE_CONFIG_HERE; 
+        // Example structure (make sure yours is NOT commented out):
+        /*
         const firebaseConfig = {
-  apiKey: "AIzaSyBa7aJLkML_J0ZEPznTXekV-ImfebzkVs0",
-  authDomain: "spendtrackernew.firebaseapp.com",
-  projectId: "spendtrackernew",
-  storageBucket: "spendtrackernew.firebasestorage.app",
-  messagingSenderId: "461784882853",
-  appId: "1:461784882853:web:f4bacf034aa0cb7e92374c"
-};
-    
+            apiKey: "AIzaSyBa7AJLkML_JOZepZnTXekV-ImfebzkVS0",
+            authDomain: "spendtrackernew.firebaseapp.com",
+            projectId: "spendtrackernew",
+            storageBucket: "spendtrackernew.firebasestorage.app",
+            messagingSenderId: "461784882853",
+            appId: "1:461784882853:web:f4bacf034aa0cb7e92374c"
+        };
+        */
         
 
         // Initialize Firebase
@@ -434,21 +434,6 @@
             });
         }
 
-        // Handle deleting expenses
-        async function deleteExpense(expenseId) {
-            if (!currentUserId) {
-                showMessage("Please log in to delete expenses.", "error", expenseMessageBox);
-                return;
-            }
-            try {
-                await deleteDoc(doc(db, `users/${currentUserId}/expenses`, expenseId));
-                showMessage("Expense deleted successfully!", "success", expenseMessageBox);
-            } catch (error) {
-                console.error("Error removing document: ", error);
-                showMessage("Failed to delete expense. Please check your permissions.", "error", expenseMessageBox);
-            }
-        }
-
         // Set today's date as default for the date input
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -457,5 +442,5 @@
         expenseDate.value = `${yyyy}-${mm}-${dd}`;
 
     </script>
-</body>
+    </body>
 </html>
