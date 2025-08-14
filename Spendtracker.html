@@ -1163,17 +1163,29 @@
                 await createUserWithEmailAndPassword(auth, email, password);
                 showMessage("Registration successful! You are now logged in.", "success", authMessageBox);
                 // onAuthStateChanged will handle UI update
-            } catch (error) {
-                console.error("Registration error:", error.code, error.message);
-                let errorMessage = "Registration failed. Please try again.";
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = "This email is already in use. Please log in or use a different email.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Invalid email address.";
-                } else if (error.code === 'auth/weak-password') {
-                    errorMessage = "Password should be at least 6 characters.";
-                }
-                showMessage(errorMessage, "error", authMessageBox);
+                } catch (error) {
+        // Log the raw error to the console for detailed debugging (KEEP THIS LINE)
+        console.error("Registration error:", error.code, error.message);
+
+        // This line provides a default, detailed error message from Firebase
+        let errorMessage = `Registration failed. Please try again. (${error.code || 'unknown'}: ${error.message || 'No specific message'})`;
+
+        // These 'if/else if' statements then override the default message
+        // with more user-friendly text for specific, common Firebase errors.
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = "This email is already in use. Please log in or use a different email.";
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = "Invalid email address.";
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = "Password should be at least 6 characters.";
+        } else if (error.code === 'auth/network-request-failed') {
+            errorMessage = "Network error. Please check your internet connection.";
+        }
+
+        // Display the final determined error message to the user (KEEP THIS LINE)
+        showMessage(errorMessage, "error", authMessageBox);
+    }
+showMessage(errorMessage, "error", authMessageBox);
             }
         });
 
