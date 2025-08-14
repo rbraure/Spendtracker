@@ -1199,7 +1199,7 @@ showMessage(errorMessage, "error", authMessageBox);
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                showMessage("Login successful! Welcome back.", "success", authMessageBox);
+                showMessage("Login successful! Welcome back.", "success", authMessage);
                 // onAuthStateChanged will handle UI update
             } catch (error) {
                 // Log the raw error to the console for detailed debugging
