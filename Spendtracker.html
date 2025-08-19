@@ -186,7 +186,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // UI Elements
+                       // UI Elements
         const authSection = document.getElementById('auth-section');
         const appSection = document.getElementById('app-section');
         const authMessageBox = document.getElementById('auth-message-box');
@@ -205,7 +205,14 @@
         const logoutButton = document.getElementById('logout-button');
         const userDisplay = document.getElementById('user-display');
         const expenseForm = document.getElementById('expense-form');
+        const expenseDate = document.getElementById('expense-date'); // <-- Crucially, make sure this is here!
+        const expenseCategory = document.getElementById('expense-category'); // <-- And these too!
+        const expenseAmount = document.getElementById('expense-amount');
+        const expenseDescription = document.getElementById('expense-description');
+        const expensePaymentMethod = document.getElementById('expense-payment-method');
         const expenseList = document.getElementById('expense-list');
+
+
 
         let currentUserId = null; // To store the current authenticated user's ID
 
