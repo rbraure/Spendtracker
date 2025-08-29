@@ -4,608 +4,710 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modern Spending Tracker</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for Icons (e.g., for categories, delete button) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap)" rel="stylesheet">
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css)">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            /* Using a subtle background gradient for a modern feel */
-            @apply bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center justify-start py-8 px-4 sm:px-6 lg:px-8;
-            overflow-y: auto; /* Ensure scrolling is enabled for the entire page */
         }
-        .card {
-            /* Enhanced card styling with rounded corners, shadows, and padding */
-            @apply bg-white p-8 rounded-2xl shadow-xl w-full max-w-md mx-auto mb-6 border border-gray-100;
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width to prevent charts from being too wide */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height */
+            max-height: 400px; /* Max height to prevent charts from being too tall */
         }
-        .input-field {
-            /* Consistent styling for input fields with focus effects */
-            @apply w-full p-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition-all duration-300 outline-none;
-        }
-        .btn {
-            /* Base button styling for consistent look and feel */
-            @apply w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-opacity-75;
-        }
-        .btn-primary {
-            /* Primary button with gradient background */
-            @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 focus:ring-blue-300;
-        }
-        .btn-secondary {
-            /* Secondary button for logout/minor actions */
-            @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-300;
-        }
-        .message-box {
-            /* Styling for success and error messages */
-            @apply mt-4 p-3 rounded-lg font-medium text-sm;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .message-box.success {
-            @apply bg-green-100 text-green-700 border border-green-200;
-        }
-        .message-box.error {
-            @apply bg-red-100 text-red-700 border border-red-200;
-        }
-        .tab-button {
-            /* Styling for tab navigation buttons */
-            @apply flex-1 py-3 px-4 rounded-xl text-center font-medium transition-all duration-300;
-        }
-        .tab-button.active {
-            /* Active tab button styling with gradient */
-            @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg;
-        }
-        .tab-button.inactive {
-            /* Inactive tab button styling */
-            @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
-        }
-        .expense-item-card {
-            /* Styling for individual expense list items */
-            @apply bg-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center border border-gray-200 transition-all duration-200 hover:shadow-md;
-        }
-        .expense-details {
-            /* Flex-grow to allow details to take available space */
-            @apply flex-grow mb-2 sm:mb-0;
-        }
-        .delete-btn {
-            /* Styling for delete button with icon and hover effects */
-            @apply mt-2 sm:mt-0 ml-0 sm:ml-4 flex-shrink-0 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200 text-sm;
-            box-shadow: 0 2px 5px rgba(239, 68, 68, 0.2);
-        }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; /* gray-300 */
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a0aec0; /* gray-400 */
+        @media (min-width: 768px) { /* md breakpoint */
+            .chart-container {
+                height: 350px; /* Taller on medium screens */
+            }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start py-8 px-4 sm:px-6 lg:px-8 overflow-y-auto">
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center justify-center p-4 overflow-y-auto">
 
-    <!-- Authentication Section -->
-    <div id="auth-section" class="card mt-8 sm:mt-16 max-w-lg mx-auto">
-        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Unlock Your Spending Tracker</h2>
-        
-        <div class="flex bg-gray-100 rounded-xl p-1 mb-8 shadow-inner">
-            <button id="register-tab" class="tab-button active">Register</button>
-            <button id="login-tab" class="tab-button inactive">Login</button>
+    <!-- Rocky's Marker for Deployment Testing - DO NOT REMOVE UNTIL CONFIRMED -->
+    <p style="background-color: yellow; color: black; padding: 10px; text-align: center; font-weight: bold; width: 100%;">
+        TESTING NEW DEPLOYMENT - Rocky's Marker!
+    </p>
+
+    <!-- Main Application Container -->
+    <div id="app-container" class="w-full max-w-4xl bg-white rounded-2xl shadow-xl p-8 my-8 border border-gray-100 flex flex-col items-center">
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="hidden flex flex-col items-center justify-center text-blue-500">
+            <i class="fas fa-spinner fa-spin fa-3x mb-4"></i>
+            <p class="text-lg font-semibold">Loading app...</p>
         </div>
 
-        <form id="register-form" class="space-y-6">
-            <div>
-                <label for="register-email" class="block text-gray-700 text-sm font-medium mb-1">Email Address</label>
-                <input type="email" id="register-email" placeholder="e.g., yourname@example.com" required class="input-field">
-            </div>
-            <div>
-                <label for="register-password" class="block text-gray-700 text-sm font-medium mb-1">Password</label>
-                <input type="password" id="register-password" placeholder="Choose a Password (min 6 characters)" required class="input-field">
-            </div>
-            <button type="submit" class="btn btn-primary">Register Account</button>
-        </form>
+        <!-- Auth Section -->
+        <section id="authSection" class="w-full max-w-md card hidden">
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-6 text-center">Unlock Your Spending Tracker</h1>
 
-        <form id="login-form" class="space-y-6 hidden">
-            <div>
-                <label for="login-email" class="block text-gray-700 text-sm font-medium mb-1">Email Address</label>
-                <input type="email" id="login-email" placeholder="e.g., yourname@example.com" required class="input-field">
+            <div class="mb-6">
+                <label for="authEmail" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <input type="email" id="authEmail" placeholder="e.g., yourname@example.com"
+                       class="input-field">
             </div>
-            <div>
-                <label for="login-password" class="block text-gray-700 text-sm font-medium mb-1">Password</label>
-                <input type="password" id="login-password" placeholder="Your Password" required class="input-field">
+
+            <div class="mb-8">
+                <label for="authPassword" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                <input type="password" id="authPassword" placeholder="Choose a Password (min 6 char)"
+                       class="input-field">
             </div>
-            <button type="submit" class="btn btn-primary">Log In</button>
-        </form>
 
-        <div id="auth-message-box" class="message-box hidden" role="alert"></div>
-    </div>
+            <button id="registerButton" class="btn-primary mb-3">Register Account</button>
+            <button id="loginButton" class="btn-secondary">Login</button>
 
-    <!-- Main Application Section -->
-    <div id="app-section" class="w-full max-w-5xl mx-auto hidden flex flex-col h-full space-y-6">
-        <header class="flex flex-col sm:flex-row justify-between items-center py-5 px-6 bg-white shadow-lg rounded-2xl mb-4 text-center sm:text-left border border-gray-100">
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-3 sm:mb-0">💰 Modern Spending Tracker</h1>
-            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                <span id="user-display" class="text-gray-600 font-medium text-sm sm:text-base px-3 py-1 bg-gray-50 rounded-lg"></span>
-                <button id="logout-button" class="btn btn-secondary py-2 px-5 text-sm w-full sm:w-auto">Logout</button>
-            </div>
-        </header>
+            <p id="authMessage" class="text-center mt-4 text-sm font-medium text-red-600"></p>
+        </section>
 
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
-            <!-- Add New Expense Form -->
-            <section class="lg:col-span-1 card">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6">Add New Expense</h2>
-                <form id="expense-form" class="space-y-6">
+        <!-- Main App Section -->
+        <section id="mainAppSection" class="w-full hidden">
+            <header class="flex flex-col md:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-200">
+                <h2 class="text-3xl font-extrabold text-blue-700">Spendtracker Dashboard</h2>
+                <div class="flex items-center space-x-4 mt-4 md:mt-0">
+                    <span id="userEmailDisplay" class="text-gray-600 font-medium"></span>
+                    <button id="logoutButton" class="btn-sm btn-red">Logout</button>
+                </div>
+            </header>
+
+            <!-- Add Expense Section -->
+            <div class="card mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-5">Add New Expense</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                        <label for="expense-date" class="block text-gray-700 text-sm font-medium mb-1">Date</label>
-                        <input type="date" id="expense-date" required class="input-field">
+                        <label for="expenseName" class="block text-sm font-medium text-gray-700 mb-2">Expense Name</label>
+                        <input type="text" id="expenseName" placeholder="Groceries, Rent, Dinner" class="input-field">
                     </div>
                     <div>
-                        <label for="expense-category" class="block text-gray-700 text-sm font-medium mb-1">Category</label>
-                        <input type="text" id="expense-category" placeholder="e.g., Food, Transport" required class="input-field">
+                        <label for="expenseAmount" class="block text-sm font-medium text-gray-700 mb-2">Amount ($)</label>
+                        <input type="number" id="expenseAmount" placeholder="e.g., 50.00" class="input-field">
                     </div>
                     <div>
-                        <label for="expense-amount" class="block text-gray-700 text-sm font-medium mb-1">Amount</label>
-                        <input type="number" id="expense-amount" placeholder="e.g., 25.50" step="0.01" required class="input-field">
-                    </div>
-                    <div>
-                        <label for="expense-description" class="block text-gray-700 text-sm font-medium mb-1">Description (Optional)</label>
-                        <input type="text" id="expense-description" placeholder="Optional notes" class="input-field">
-                    </div>
-                    <div>
-                        <label for="expense-payment-method" class="block text-gray-700 text-sm font-medium mb-1">Payment Method</label>
-                        <select id="expense-payment-method" required class="input-field">
-                            <option value="">Select Method</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Credit Card">Credit Card</option>
-                            <option value="Debit Card">Debit Card</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Mobile Payment">Mobile Payment</option>
+                        <label for="expenseCategory" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select id="expenseCategory" class="input-field">
+                            <option value="">Select Category</option>
+                            <option value="Food">Food</option>
+                            <option value="Housing">Housing</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Add Expense</button>
-                </form>
-                <div id="expense-message-box" class="message-box hidden" role="alert"></div>
-            </section>
-
-            <!-- Expense List & Other Features Section -->
-            <section class="lg:col-span-2 flex flex-col space-y-6">
-                <!-- Your Expenses List -->
-                <div class="card flex-grow flex flex-col">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Your Expenses</h2>
-                    <div id="expense-list" class="space-y-4 overflow-y-auto flex-grow pr-1">
-                        <p class="text-gray-500 text-center py-4">No expenses yet. Add some above!</p>
+                    <div>
+                        <label for="expenseDate" class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <input type="date" id="expenseDate" class="input-field">
                     </div>
                 </div>
+                <button id="addExpenseButton" class="btn-primary mt-6 w-full">Add Expense</button>
+                <p id="expenseMessage" class="text-center mt-4 text-sm font-medium text-red-600"></p>
+            </div>
 
-                <!-- Placeholder for Charts -->
-                <div class="card">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Spending Overview (Charts)</h2>
-                    <div id="charts-section" class="text-gray-500 text-center py-8">
-                        Charts will appear here to visualize your spending trends.
-                        <!-- Chart canvas or container will be dynamically added here -->
-                    </div>
+            <!-- Expense List & Summary -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card lg:col-span-1">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-5">Your Expenses</h3>
+                    <ul id="expenseList" class="divide-y divide-gray-200">
+                        <li class="p-3 text-gray-500 text-center italic">No expenses added yet.</li>
+                    </ul>
                 </div>
 
-                <!-- Placeholder for Import/Export -->
-                <div class="card">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-6">Data Management</h2>
-                    <div id="data-management-section" class="text-gray-500 text-center py-8 space-y-4">
-                        <p>Import and export your spending data.</p>
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button id="export-json-btn" class="btn btn-secondary text-sm sm:w-1/2">Export as JSON</button>
-                            <label for="import-json-file" class="btn btn-secondary text-sm sm:w-1/2 cursor-pointer flex items-center justify-center">
-                                Import from JSON
-                                <input type="file" id="import-json-file" accept=".json" class="hidden">
-                            </label>
+                <div class="card lg:col-span-1">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-5">Spending Summary</h3>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+                            <p class="text-lg font-medium text-gray-600">Total Spent</p>
+                            <p id="totalSpent" class="text-3xl font-extrabold text-blue-600">$0.00</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                            <p class="text-lg font-medium text-gray-600">Average Daily</p>
+                            <p id="averageDaily" class="text-3xl font-extrabold text-green-600">$0.00</p>
                         </div>
                     </div>
+
+                    <h4 class="text-xl font-bold text-gray-800 mt-8 mb-4">Spending by Category</h4>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
                 </div>
-            </section>
-        </main>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="card mb-8">
+                <h3 class="text-2xl font-bold text-gray-800 mb-5">Spending Trend Over Time</h3>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+             <!-- Calendar View (Placeholder for future development) -->
+            <div class="card">
+                <h3 class="text-2xl font-bold text-gray-800 mb-5">Expense Calendar (Coming Soon!)</h3>
+                <div class="bg-gray-50 p-6 rounded-lg text-center text-gray-500 italic">
+                    A visual calendar view of your expenses will be available in a future update.
+                </div>
+            </div>
+
+        </section>
     </div>
 
+    <!-- Modal for Confirmations/Alerts -->
+    <div id="customModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h4 id="modalTitle" class="text-xl font-bold text-gray-900 mb-4"></h4>
+            <p id="modalMessage" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modalCancel" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">Cancel</button>
+                <button id="modalConfirm" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
     <script type="module">
-        // Add this line right after the opening <script type="module"> tag
-        console.log("Spendtracker app script loaded successfully!");
+        // Firebase Imports
+        import { initializeApp } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js)";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js)";
+        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, doc, deleteDoc, updateDoc, Timestamp } from "[https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js)";
 
-        // Firebase SDK Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword, 
-            signOut, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            query, 
-            where, 
-            onSnapshot, 
-            deleteDoc, 
-            doc 
-        } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-
-        // Your web app's Firebase configuration
-        // !!! IMPORTANT: REPLACE THIS ENTIRE BLOCK WITH YOUR ACTUAL FIREBASE CONFIGURATION !!!
-        // Go to Firebase Console -> Project settings -> General -> "Your apps" section -> select your web app -> "Config"
+        // Your Firebase Configuration (IMPORTANT: Replace with your actual config)
         const firebaseConfig = {
-            apiKey: "AIzaSyCeEQH1mmjXtxwx7VJQrE7-WrIHy35Sd2U",
-            authDomain: "my-spendingtracker.firebaseapp.com",
-            projectId: "my-spendingtracker",
-            storageBucket: "my-spendingtracker.firebasestorage.app",
-            messagingSenderId: "545474969573",
-            appId: "1:545474969573:web:e85a70584131eda798390c",
-            measurementId: "G-MRRGRFNKLT"
-            };
+  apiKey: "AIzaSyBa7aJLkML_J0ZEPznTXekV-ImfebzkVs0",
+  authDomain: "spendtrackernew.firebaseapp.com",
+  projectId: "spendtrackernew",
+  storageBucket: "spendtrackernew.firebasestorage.app",
+  messagingSenderId: "461784882853",
+  appId: "1:461784882853:web:f4bacf034aa0cb7e92374c"
+};
+
+
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // UI Elements - ALL ELEMENTS MUST BE DECLARED HERE FOR GLOBAL SCRIPT ACCESS
-        const authSection = document.getElementById('auth-section');
-        const appSection = document.getElementById('app-section');
-        const authMessageBox = document.getElementById('auth-message-box');
-        const expenseMessageBox = document.getElementById('expense-message-box');
+        // DOM Elements
+        const authSection = document.getElementById('authSection');
+        const mainAppSection = document.getElementById('mainAppSection');
+        const loadingSpinner = document.getElementById('loadingSpinner');
 
-        const registerTab = document.getElementById('register-tab');
-        const loginTab = document.getElementById('login-tab');
-        const registerForm = document.getElementById('register-form');
-        const loginForm = document.getElementById('login-form');
+        const authEmail = document.getElementById('authEmail');
+        const authPassword = document.getElementById('authPassword');
+        const registerButton = document.getElementById('registerButton');
+        const loginButton = document.getElementById('loginButton');
+        const authMessage = document.getElementById('authMessage');
 
-        const registerEmailInput = document.getElementById('register-email');
-        const registerPasswordInput = document.getElementById('register-password');
-        const loginEmailInput = document.getElementById('login-email');
-        const loginPasswordInput = document.getElementById('login-password');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const logoutButton = document.getElementById('logoutButton');
 
-        const logoutButton = document.getElementById('logout-button');
-        const userDisplay = document.getElementById('user-display');
-        const expenseForm = document.getElementById('expense-form');
-        const expenseDate = document.getElementById('expense-date');
-        const expenseCategory = document.getElementById('expense-category');
-        const expenseAmount = document.getElementById('expense-amount');
-        const expenseDescription = document.getElementById('expense-description');
-        const expensePaymentMethod = document.getElementById('expense-payment-method');
-        const expenseList = document.getElementById('expense-list');
+        const expenseName = document.getElementById('expenseName');
+        const expenseAmount = document.getElementById('expenseAmount');
+        const expenseCategory = document.getElementById('expenseCategory');
+        const expenseDate = document.getElementById('expenseDate');
+        const addExpenseButton = document.getElementById('addExpenseButton');
+        const expenseMessage = document.getElementById('expenseMessage');
+        const expenseList = document.getElementById('expenseList');
 
-        // New UI Elements for Charts/Data Management
-        const chartsSection = document.getElementById('charts-section');
-        const exportJsonBtn = document.getElementById('export-json-btn');
-        const importJsonFile = document.getElementById('import-json-file');
+        const totalSpent = document.getElementById('totalSpent');
+        const averageDaily = document.getElementById('averageDaily');
 
+        const categoryChartCanvas = document.getElementById('categoryChart');
+        const trendChartCanvas = document.getElementById('trendChart');
 
-        let currentUserId = null; // To store the current authenticated user's ID
+        let categoryChart;
+        let trendChart;
 
-        // Helper function to show messages
-        function showMessage(message, type, element) {
-            element.textContent = message;
-            element.className = `message-box ${type}`; // Reset classes and apply new ones
-            element.classList.remove('hidden');
-            setTimeout(() => {
-                element.classList.add('hidden');
-            }, 5000); // Hide after 5 seconds
+        // Custom Modal Elements
+        const customModal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCancel = document.getElementById('modalCancel');
+        const modalConfirm = document.getElementById('modalConfirm');
+
+        // Function to show custom modal
+        function showCustomModal(title, message, onConfirm, onCancel) {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            customModal.classList.remove('hidden');
+
+            const confirmHandler = () => {
+                onConfirm();
+                customModal.classList.add('hidden');
+                modalConfirm.removeEventListener('click', confirmHandler);
+                modalCancel.removeEventListener('click', cancelHandler);
+            };
+
+            const cancelHandler = () => {
+                if (onCancel) onCancel();
+                customModal.classList.add('hidden');
+                modalConfirm.removeEventListener('click', confirmHandler);
+                modalCancel.removeEventListener('click', cancelHandler);
+            };
+
+            modalConfirm.addEventListener('click', confirmHandler);
+            modalCancel.addEventListener('click', cancelHandler);
         }
 
-        // Tab switching logic
-        registerTab.addEventListener('click', () => {
-            registerTab.classList.add('active');
-            registerTab.classList.remove('inactive');
-            loginTab.classList.add('inactive');
-            loginTab.classList.remove('active');
-            registerForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-            authMessageBox.classList.add('hidden'); // Clear previous messages
-        });
+        // --- Chart.js Configuration & Data Processing ---
 
-        loginTab.addEventListener('click', () => {
-            loginTab.classList.add('active');
-            loginTab.classList.remove('inactive');
-            registerTab.classList.add('inactive');
-            registerTab.classList.remove('active');
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-            authMessageBox.classList.add('hidden'); // Clear previous messages
-        });
-
-        // Handle Registration
-        registerForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const email = registerEmailInput.value;
-            const password = registerPasswordInput.value;
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                showMessage("Registration successful! You are now logged in.", "success", authMessageBox);
-                // onAuthStateChanged will handle UI update
-            } catch (error) {
-                console.error("Registration error:", error.code, error.message);
-                let errorMessage = `Registration failed. Please try again. (${error.code || 'unknown'}: ${error.message || 'No specific message'})`;
-                if (error.code === 'auth/email-already-in-use') {
-                    errorMessage = "This email is already in use. Please log in or use a different email.";
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Invalid email address.";
-                } else if (error.code === 'auth/weak-password') {
-                    errorMessage = "Password should be at least 6 characters.";
-                } else if (error.code === 'auth/network-request-failed') {
-                    errorMessage = "Network error. Please check your internet connection.";
+        // Function to wrap long labels for Chart.js
+        function wrapLabel(label) {
+            if (typeof label !== 'string' || label.length <= 16) {
+                return label;
+            }
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            for (const word of words) {
+                if ((currentLine + word).length > 16 && currentLine !== '') {
+                    lines.push(currentLine.trim());
+                    currentLine = word + ' ';
+                } else {
+                    currentLine += word + ' ';
                 }
-                showMessage(errorMessage, "error", authMessageBox);
             }
-        });
+            lines.push(currentLine.trim());
+            return lines;
+        }
 
-        // Handle Login
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const email = loginEmailInput.value;
-            const password = loginPasswordInput.value;
-
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                showMessage("Login successful! Welcome back.", "success", authMessageBox);
-                // onAuthStateChanged will handle UI update
-            } catch (error) {
-                console.error("Login error:", error.code, error.message);
-                let errorMessage = `Login failed. Please check your email and password. (${error.code || 'unknown'}: ${error.message || 'No specific message'})`;
-                if (error.code === 'auth/invalid-email') {
-                    errorMessage = "Invalid email address.";
-                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    errorMessage = "Invalid email or password.";
-                } else if (error.code === 'auth/network-request-failed') {
-                    errorMessage = "Network error. Please check your internet connection.";
-                }
-                showMessage(errorMessage, "error", authMessageBox);
-            }
-        });
-
-        // Handle Logout
-        logoutButton.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                showMessage("Logged out successfully.", "success", authMessageBox);
-                // onAuthStateChanged will handle UI update
-            } catch (error) {
-                console.error("Logout error:", error);
-                showMessage("Logout failed. Please try again.", "error", authMessageBox);
-            }
-        });
-
-        // Auth state observer
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in
-                currentUserId = user.uid;
-                console.log("Logged in user ID:", currentUserId); // For debugging sync
-                userDisplay.textContent = `Welcome, ${user.email}`;
-                authSection.classList.add('hidden');
-                appSection.classList.remove('hidden');
-                loadExpenses(currentUserId); // Load expenses for the logged-in user
-                expenseMessageBox.classList.add('hidden'); // Hide any previous expense messages
-            } else {
-                // User is signed out
-                currentUserId = null;
-                console.log("User logged out. currentUserId is:", currentUserId); // For debugging sync
-                userDisplay.textContent = ''; // Clear user display
-                authSection.classList.remove('hidden');
-                appSection.classList.add('hidden');
-                expenseList.innerHTML = '<p class="text-gray-500 text-center py-4">No expenses yet. Add some above!</p>'; // Clear expenses
-                // Ensure correct form is shown when logged out
-                registerTab.click(); // Default to register form
-            }
-        });
-
-        // Handle adding expenses
-        expenseForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            if (!currentUserId) {
-                showMessage("Please log in to add expenses.", "error", expenseMessageBox);
-                return;
-            }
-            console.log("Attempting to save expense for user ID:", currentUserId); // For debugging sync
-
-            const date = expenseDate.value;
-            const category = expenseCategory.value;
-            const amount = parseFloat(expenseAmount.value);
-            const description = expenseDescription.value;
-            const paymentMethod = expensePaymentMethod.value;
-
-            if (!date || !category || isNaN(amount) || amount <= 0 || !paymentMethod) {
-                showMessage("Please fill in all required expense fields correctly.", "error", expenseMessageBox);
-                return;
-            }
-
-            try {
-                await addDoc(collection(db, `users/${currentUserId}/expenses`), {
-                    date: date,
-                    category: category,
-                    amount: amount,
-                    description: description,
-                    paymentMethod: paymentMethod,
-                    timestamp: new Date() // Add a timestamp for ordering
-                });
-                showMessage("Expense added successfully!", "success", expenseMessageBox);
-                expenseForm.reset(); // Clear the form
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                showMessage("Failed to add expense. Permission denied for Firestore. Please check your Firebase security rules.", "error", expenseMessageBox);
-            }
-        });
-
-        // Load expenses for the current user
-        function loadExpenses(userId) {
-            const expensesCollectionRef = collection(db, `users/${userId}/expenses`);
-            // Use onSnapshot for real-time updates
-            onSnapshot(expensesCollectionRef, (snapshot) => {
-                const expenses = [];
-                snapshot.forEach((doc) => {
-                    expenses.push({ id: doc.id, ...doc.data() });
-                });
-
-                // Sort expenses by date and then by timestamp if dates are the same
-                expenses.sort((a, b) => {
-                    const dateA = new Date(a.date);
-                    const dateB = new Date(b.date);
-                    if (dateA.getTime() === dateB.getTime()) {
-                        // If dates are the same, sort by timestamp
-                        return b.timestamp.toDate() - a.timestamp.toDate();
+        // Common Chart.js Tooltip Configuration
+        const chartTooltipConfig = {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                                return label.join(' ');
+                            } else {
+                                return label;
+                            }
+                        }
                     }
-                    return dateB - dateA; // Sort by date descending
-                });
+                },
+                legend: {
+                    labels: {
+                        boxWidth: 20
+                    }
+                }
+            }
+        };
 
-                displayExpenses(expenses);
-            }, (error) => {
-                console.error("Error fetching expenses: ", error);
-                showMessage("Failed to load expenses. Please check your permissions.", "error", expenseMessageBox);
+        // Initialize Category Chart
+        function initializeCategoryChart(data) {
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+            const categoryLabels = Object.keys(data).map(wrapLabel);
+            const categoryAmounts = Object.values(data);
+
+            const backgroundColors = [
+                '#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#6A8BFF', '#A0CED9'
+            ];
+            const borderColors = backgroundColors.map(color => color.replace('0.7', '1'));
+
+            categoryChart = new Chart(categoryChartCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryAmounts,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...chartTooltipConfig // Apply common tooltip config
+                }
             });
         }
 
-        // Display expenses in the UI
-        function displayExpenses(expenses) {
-            expenseList.innerHTML = ''; // Clear current list
+        // Initialize Trend Chart
+        function initializeTrendChart(data) {
+            if (trendChart) {
+                trendChart.destroy();
+            }
+            const trendLabels = data.map(d => wrapLabel(d.date)).reverse(); // Reverse for chronological order
+            const trendAmounts = data.map(d => d.amount).reverse();
+
+            trendChart = new Chart(trendChartCanvas, {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Daily Spending ($)',
+                        data: trendAmounts,
+                        fill: true,
+                        backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                        borderColor: '#007BFF',
+                        tension: 0.3,
+                        pointBackgroundColor: '#007BFF',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#007BFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...chartTooltipConfig, // Apply common tooltip config
+                    scales: {
+                        x: {
+                            type: 'category',
+                            title: { display: true, text: 'Date' },
+                            ticks: {
+                                autoSkip: true,
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Amount ($)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Firebase Interaction ---
+
+        let unsubscribeExpenses = null; // To store the unsubscribe function for real-time updates
+
+        // Auth State Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in
+                authSection.classList.add('hidden');
+                mainAppSection.classList.remove('hidden');
+                userEmailDisplay.textContent = user.email;
+                loadingSpinner.classList.add('hidden');
+
+                // Start listening to expenses only when user is logged in
+                if (unsubscribeExpenses) {
+                    unsubscribeExpenses(); // Unsubscribe previous listener if exists
+                }
+                const q = query(collection(db, 'expenses'), where('userId', '==', user.uid), orderBy('date', 'desc'));
+
+                unsubscribeExpenses = onSnapshot(q, (snapshot) => {
+                    const expenses = [];
+                    let total = 0;
+                    const dailySpending = {}; // For trend chart and average daily
+
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const expense = {
+                            id: doc.id,
+                            ...data,
+                            date: data.date.toDate().toISOString().split('T')[0] // Convert Firebase Timestamp to YYYY-MM-DD
+                        };
+                        expenses.push(expense);
+                        total += expense.amount;
+
+                        // Aggregate for daily spending
+                        if (dailySpending[expense.date]) {
+                            dailySpending[expense.date] += expense.amount;
+                        } else {
+                            dailySpending[expense.date] = expense.amount;
+                        }
+                    });
+
+                    renderExpenses(expenses);
+                    updateSummary(total, dailySpending);
+                    updateCharts(expenses, dailySpending);
+                }, (error) => {
+                    console.error("Error fetching expenses:", error);
+                    showCustomModal("Error", "Failed to load expenses. Please try again.");
+                });
+
+            } else {
+                // User is signed out
+                authSection.classList.remove('hidden');
+                mainAppSection.classList.add('hidden');
+                loadingSpinner.classList.add('hidden');
+
+                if (unsubscribeExpenses) {
+                    unsubscribeExpenses(); // Stop listening when user logs out
+                    unsubscribeExpenses = null;
+                }
+                expenseList.innerHTML = '<li class="p-3 text-gray-500 text-center italic">No expenses added yet.</li>';
+                totalSpent.textContent = '$0.00';
+                averageDaily.textContent = '$0.00';
+                if (categoryChart) categoryChart.destroy();
+                if (trendChart) trendChart.destroy();
+            }
+        });
+
+        // Register User
+        registerButton.addEventListener('click', async () => {
+            const email = authEmail.value.trim();
+            const password = authPassword.value.trim();
+            if (!email || !password) {
+                authMessage.textContent = 'Please enter both email and password.';
+                return;
+            }
+            if (password.length < 6) {
+                authMessage.textContent = 'Password must be at least 6 characters.';
+                return;
+            }
+
+            try {
+                loadingSpinner.classList.remove('hidden');
+                await createUserWithEmailAndPassword(auth, email, password);
+                authMessage.textContent = 'Registration successful! You are now logged in.';
+                authMessage.className = 'text-center mt-4 text-sm font-medium text-green-600';
+            } catch (error) {
+                console.error("Registration error:", error.code, error.message);
+                authMessage.textContent = `Registration failed: ${error.message}`;
+                authMessage.className = 'text-center mt-4 text-sm font-medium text-red-600';
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Login User
+        loginButton.addEventListener('click', async () => {
+            const email = authEmail.value.trim();
+            const password = authPassword.value.trim();
+            if (!email || !password) {
+                authMessage.textContent = 'Please enter both email and password.';
+                return;
+            }
+
+            try {
+                loadingSpinner.classList.remove('hidden');
+                await signInWithEmailAndPassword(auth, email, password);
+                authMessage.textContent = ''; // Clear message on success
+            } catch (error) {
+                console.error("Login error:", error.code, error.message);
+                authMessage.textContent = `Login failed: ${error.message}`;
+                authMessage.className = 'text-center mt-4 text-sm font-medium text-red-600';
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Logout User
+        logoutButton.addEventListener('click', async () => {
+            try {
+                loadingSpinner.classList.remove('hidden');
+                await signOut(auth);
+            } catch (error) {
+                console.error("Logout error:", error.message);
+                showCustomModal("Error", "Failed to logout. Please try again.");
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Add Expense
+        addExpenseButton.addEventListener('click', async () => {
+            const name = expenseName.value.trim();
+            const amount = parseFloat(expenseAmount.value);
+            const category = expenseCategory.value;
+            const date = expenseDate.value;
+
+            if (!name || isNaN(amount) || amount <= 0 || !category || !date) {
+                expenseMessage.textContent = 'Please fill in all fields correctly.';
+                expenseMessage.className = 'text-center mt-4 text-sm font-medium text-red-600';
+                return;
+            }
+
+            try {
+                loadingSpinner.classList.remove('hidden');
+                await addDoc(collection(db, 'expenses'), {
+                    userId: auth.currentUser.uid,
+                    name,
+                    amount,
+                    category,
+                    date: Timestamp.fromDate(new Date(date)), // Store as Firebase Timestamp
+                    createdAt: Timestamp.now()
+                });
+                expenseMessage.textContent = 'Expense added successfully!';
+                expenseMessage.className = 'text-center mt-4 text-sm font-medium text-green-600';
+                // Clear form
+                expenseName.value = '';
+                expenseAmount.value = '';
+                expenseCategory.value = '';
+                expenseDate.value = '';
+            } catch (error) {
+                console.error("Add expense error:", error.message);
+                expenseMessage.textContent = `Failed to add expense: ${error.message}`;
+                expenseMessage.className = 'text-center mt-4 text-sm font-medium text-red-600';
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Render Expenses
+        function renderExpenses(expenses) {
+            expenseList.innerHTML = ''; // Clear previous list
             if (expenses.length === 0) {
-                expenseList.innerHTML = '<p class="text-gray-500 text-center py-4">No expenses yet. Add some above!</p>';
+                expenseList.innerHTML = '<li class="p-3 text-gray-500 text-center italic">No expenses added yet.</li>';
                 return;
             }
 
             expenses.forEach(expense => {
-                const expenseItem = document.createElement('div');
-                expenseItem.className = 'expense-item-card'; /* Using custom class for consistent styling */
-                expenseItem.innerHTML = `
-                    <div class="expense-details">
-                        <p class="font-semibold text-gray-800">${expense.category}: $${expense.amount.toFixed(2)}</p>
-                        <p class="text-sm text-gray-600">${expense.date} - ${expense.paymentMethod}</p>
-                        ${expense.description ? `<p class="text-xs text-gray-500">${expense.description}</p>` : ''}
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center p-3 hover:bg-gray-50 transition-colors duration-200 group';
+                li.innerHTML = `
+                    <div class="flex-1">
+                        <p class="text-lg font-semibold text-gray-900">${expense.name} - <span class="text-blue-600">$${expense.amount.toFixed(2)}</span></p>
+                        <p class="text-sm text-gray-500">${expense.category} on ${expense.date}</p>
                     </div>
-                    <button class="delete-btn bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200 text-sm" data-id="${expense.id}"><i class="fas fa-trash-alt"></i></button>
+                    <div class="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <button class="text-blue-500 hover:text-blue-700 edit-btn" data-id="${expense.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 delete-btn" data-id="${expense.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 `;
-                expenseList.appendChild(expenseItem);
+                expenseList.appendChild(li);
             });
 
-            // Add event listeners for delete buttons
+            // Add event listeners for edit/delete buttons
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => editExpense(e.currentTarget.dataset.id, expenses));
+            });
             document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const expenseId = e.target.dataset.id; // Correctly get data-id from the button
-                    // Handle cases where icon might be clicked instead of button directly
-                    if (!expenseId) {
-                        const parentButton = e.target.closest('button.delete-btn');
-                        if (parentButton) {
-                            deleteExpense(parentButton.dataset.id);
-                        }
-                    } else {
-                        deleteExpense(expenseId);
-                    }
-                });
+                button.addEventListener('click', (e) => deleteExpense(e.currentTarget.dataset.id));
             });
         }
 
-        // Handle deleting expenses
-        async function deleteExpense(expenseId) {
-            if (!currentUserId) {
-                showMessage("Please log in to delete expenses.", "error", expenseMessageBox);
-                return;
-            }
-            try {
-                await deleteDoc(doc(db, `users/${currentUserId}/expenses`, expenseId));
-                showMessage("Expense deleted successfully!", "success", expenseMessageBox);
-            } catch (error) {
-                console.error("Error removing document: ", error);
-                showMessage("Failed to delete expense. Please check your permissions.", "error", expenseMessageBox);
-            }
-        });
+        // Edit Expense
+        async function editExpense(id, expenses) {
+            const expenseToEdit = expenses.find(exp => exp.id === id);
+            if (!expenseToEdit) return;
 
-        // --- Data Import/Export Functions ---
+            showCustomModal(
+                "Edit Expense",
+                `
+                <div class="space-y-4">
+                    <div>
+                        <label for="modalEditName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <input type="text" id="modalEditName" value="${expenseToEdit.name}" class="input-field-modal">
+                    </div>
+                    <div>
+                        <label for="modalEditAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input type="number" id="modalEditAmount" value="${expenseToEdit.amount}" class="input-field-modal">
+                    </div>
+                    <div>
+                        <label for="modalEditCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select id="modalEditCategory" class="input-field-modal">
+                            <option value="Food">Food</option>
+                            <option value="Housing">Housing</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="modalEditDate" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                        <input type="date" id="modalEditDate" value="${expenseToEdit.date}" class="input-field-modal">
+                    </div>
+                </div>
+                `,
+                async () => {
+                    const newName = document.getElementById('modalEditName').value.trim();
+                    const newAmount = parseFloat(document.getElementById('modalEditAmount').value);
+                    const newCategory = document.getElementById('modalEditCategory').value;
+                    const newDate = document.getElementById('modalEditDate').value;
 
-        // Export data as JSON
-        exportJsonBtn.addEventListener('click', async () => {
-            if (!currentUserId) {
-                showMessage("Please log in to export data.", "error", expenseMessageBox);
-                return;
-            }
-            try {
-                const expensesSnapshot = await getDocs(collection(db, `users/${currentUserId}/expenses`));
-                const expensesData = [];
-                expensesSnapshot.forEach(doc => {
-                    expensesData.push(doc.data());
-                });
-
-                const jsonString = JSON.stringify(expensesData, null, 2); // Pretty print JSON
-
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `spendtracker_expenses_${currentUserId}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showMessage("Expenses exported successfully!", "success", expenseMessageBox);
-            } catch (error) {
-                console.error("Error exporting data:", error);
-                showMessage("Failed to export expenses. Please try again.", "error", expenseMessageBox);
-            }
-        });
-
-        // Import data from JSON
-        importJsonFile.addEventListener('change', (event) => {
-            if (!currentUserId) {
-                showMessage("Please log in to import data.", "error", expenseMessageBox);
-                return;
-            }
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (!Array.isArray(importedData)) {
-                        showMessage("Invalid JSON format. Expected an array of expenses.", "error", expenseMessageBox);
+                    if (!newName || isNaN(newAmount) || newAmount <= 0 || !newCategory || !newDate) {
+                        showCustomModal("Error", "Please fill in all fields correctly.", () => {});
                         return;
                     }
 
-                    // For simplicity, we'll add new expenses. More advanced logic might handle duplicates.
-                    for (const expense of importedData) {
-                        // Basic validation for imported data structure
-                        if (expense.date && expense.category && typeof expense.amount === 'number' && expense.amount > 0 && expense.paymentMethod) {
-                            await addDoc(collection(db, `users/${currentUserId}/expenses`), {
-                                date: expense.date,
-                                category: expense.category,
-                                amount: expense.amount,
-                                description: expense.description || '', // Default to empty string if missing
-                                paymentMethod: expense.paymentMethod,
-                                timestamp: new Date() // Set new timestamp for ordering
-                            });
-                        } else {
-                            console.warn("Skipping invalid imported expense:", expense);
-                        }
+                    try {
+                        loadingSpinner.classList.remove('hidden');
+                        await updateDoc(doc(db, 'expenses', id), {
+                            name: newName,
+                            amount: newAmount,
+                            category: newCategory,
+                            date: Timestamp.fromDate(new Date(newDate))
+                        });
+                        showCustomModal("Success", "Expense updated successfully!", () => {});
+                    } catch (error) {
+                        console.error("Edit expense error:", error);
+                        showCustomModal("Error", "Failed to update expense. Please try again.", () => {});
+                    } finally {
+                        loadingSpinner.classList.add('hidden');
                     }
-                    showMessage("Expenses imported successfully!", "success", expenseMessageBox);
-                } catch (error) {
-                    console.error("Error importing data:", error);
-                    showMessage("Failed to import expenses. Ensure the file is a valid JSON array of expenses.", "error", expenseMessageBox);
+                },
+                null // No specific action on cancel
+            );
+            document.getElementById('modalEditCategory').value = expenseToEdit.category; // Pre-select category
+        }
+
+
+        // Delete Expense
+        function deleteExpense(id) {
+            showCustomModal(
+                "Confirm Deletion",
+                "Are you sure you want to delete this expense? This action cannot be undone.",
+                async () => {
+                    try {
+                        loadingSpinner.classList.remove('hidden');
+                        await deleteDoc(doc(db, 'expenses', id));
+                        showCustomModal("Success", "Expense deleted successfully!", () => {});
+                    } catch (error) {
+                        console.error("Delete expense error:", error);
+                        showCustomModal("Error", "Failed to delete expense. Please try again.", () => {});
+                    } finally {
+                        loadingSpinner.classList.add('hidden');
+                    }
                 }
-            };
-            reader.readAsText(file);
+            );
+        }
+
+        // Update Summary (Total & Average)
+        function updateSummary(total, dailySpending) {
+            totalSpent.textContent = `$${total.toFixed(2)}`;
+
+            const dates = Object.keys(dailySpending);
+            if (dates.length > 0) {
+                const average = total / dates.length;
+                averageDaily.textContent = `$${average.toFixed(2)}`;
+            } else {
+                averageDaily.textContent = `$0.00`;
+            }
+        }
+
+        // Update Charts
+        function updateCharts(expenses, dailySpending) {
+            // Category Chart Data
+            const categorySummary = expenses.reduce((acc, expense) => {
+                acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
+                return acc;
+            }, {});
+            initializeCategoryChart(categorySummary);
+
+            // Trend Chart Data
+            const trendDataArray = Object.keys(dailySpending).sort().map(date => ({
+                date: date,
+                amount: dailySpending[date]
+            }));
+            initializeTrendChart(trendDataArray);
+        }
+
+        // Hide spinner initially and show auth/app based on state
+        document.addEventListener('DOMContentLoaded', () => {
+            loadingSpinner.classList.remove('hidden');
         });
 
-        // Set today's date as default for the date input
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-        const dd = String(today.getDate()).padStart(2, '0');
-        expenseDate.value = `${yyyy}-${mm}-${dd}`;
     </script>
 </body>
 </html>
