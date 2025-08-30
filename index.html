@@ -591,66 +591,34 @@ import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, do
         }
 
         // Edit Expense
-        async function editExpense(id, expenses) {
-            const expenseToEdit = expenses.find(exp => exp.id === id);
-            if (!expenseToEdit) return;
+        async function addExpense() {
+    const expenseName = document.getElementById('expenseName').value;
+    const amount = document.getElementById('amount').value;
+    const category = document.getElementById('category').value;
+    const date = document.getElementById('date').value;
 
-            showCustomModal(
-                "Edit Expense",
-                `
-                <div class="space-y-4">
-                    <div>
-                        <label for="modalEditName" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                        <input type="text" id="modalEditName" value="${expenseToEdit.name}" class="input-field-modal">
-                    </div>
-                    <div>
-                        <label for="modalEditAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                        <input type="number" id="modalEditAmount" value="${expenseToEdit.amount}" class="input-field-modal">
-                    </div>
-                    <div>
-                        <label for="modalEditCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                        <select id="modalEditCategory" class="input-field-modal">
-                            <option value="Food">Food</option>
-                            <option value="Housing">Housing</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="modalEditDate" class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                        <input type="date" id="modalEditDate" value="${expenseToEdit.date}" class="input-field-modal">
-                    </div>
-                </div>
-                `,
-                async () => {
-                    const newName = document.getElementById('modalEditName').value.trim();
-                    const newAmount = parseFloat(document.getElementById('modalEditAmount').value);
-                    const newCategory = document.getElementById('modalEditCategory').value;
-                    const newDate = document.getElementById('modalEditDate').value;
+    if (!expenseName || !amount || !category || !date) {
+        showMessage('Please fill in all fields.', 'error');
+        return;
+    }
 
-                    if (!newName || isNaN(newAmount) || newAmount <= 0 || !newCategory || !newDate) {
-                        showCustomModal("Error", "Please fill in all fields correctly.", () => {});
-                        return;
-                    }
+    const newExpense = {
+        name: expenseName,
+        amount: parseFloat(amount),
+        category: category,
+        date: date
+    };
 
-                    try {
-                        loadingSpinner.classList.remove('hidden');
-                        await updateDoc(doc(db, 'expenses', id), {
-                            name: newName,
-                            amount: newAmount,
-                            category: newCategory,
-                            date: Timestamp.fromDate(new Date(newDate))
-                        });
-                        showCustomModal("Success", "Expense updated successfully!", () => {});
-                    } catch (error) {
-                        console.error("Edit expense error:", error);
-                        showCustomModal("Error", "Failed to update expense. Please try again.", () => {});
-                    } finally {
-                        loadingSpinner.classList.add('hidden');
-                    }
-                },
+    try {
+        const expensesCollectionRef = collection(db, "users", auth.currentUser.uid, "expenses");
+        await addDoc(expensesCollectionRef, newExpense);
+        showMessage('Expense added successfully!', 'success');
+        clearExpenseForm();
+    } catch (error) {
+        console.error("Error adding document: ", error);
+        showMessage(`Failed to add expense: ${error.message}`, 'error');
+    }
+},
                 null // No specific action on cancel
             );
             document.getElementById('modalEditCategory').value = expenseToEdit.category; // Pre-select category
