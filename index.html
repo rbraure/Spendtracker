@@ -3,249 +3,570 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collaborative Shopping List</title>
+    <title>Modern Spending Tracker</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a1a2e;
-            color: #e0e0e0;
         }
-        .container {
+        .chart-container {
+            position: relative;
             max-width: 600px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: #2e2e50;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin: 0 auto;
         }
+        /* Style for custom confirm/alert modal */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            justify-content: center;
-            align-items: center;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
         }
-        .modal-content {
-            background-color: #2e2e50;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 400px;
-            text-align: center;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-        }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: #fff;
-            text-decoration: none;
-            cursor: pointer;
+        .modal.hidden {
+            opacity: 0;
+            visibility: hidden;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1 class="text-3xl font-bold text-center mb-6 text-purple-400">Collaborative Shopping List</h1>
-        <div class="bg-indigo-900 bg-opacity-40 p-4 rounded-lg mb-4 text-center">
-            <h2 class="text-lg font-semibold">User ID:</h2>
-            <p id="user-id" class="text-sm break-all font-mono text-purple-200 mt-2"></p>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="fixed inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center hidden">
+        <div class="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-indigo-500"></div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="mainAppSection" class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-4xl space-y-8 flex flex-col items-center transition-all duration-300 transform scale-100 opacity-100">
+
+        <!-- Auth Section (Initial View) -->
+        <div id="authSection" class="w-full">
+            <h1 class="text-3xl font-extrabold text-center text-gray-800 mb-6">Unlock Your Spending Tracker</h1>
+            <div class="flex flex-col space-y-4">
+                <input id="authEmail" type="email" placeholder="Email Address" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow">
+                <input id="authPassword" type="password" placeholder="Password (min 6 characters)" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow">
+                <button id="registerButton" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg shadow-md hover:bg-indigo-700 transition-colors">Register Account</button>
+                <button id="loginButton" class="w-full bg-indigo-500 text-white font-bold py-3 rounded-lg shadow-md hover:bg-indigo-600 transition-colors">Login</button>
+                <p id="authMessage" class="text-center text-sm text-red-500 mt-2"></p>
+            </div>
         </div>
-        <form id="add-item-form" class="flex flex-col sm:flex-row gap-4 mb-6">
-            <input type="text" id="item-input" placeholder="Add a new item..." required
-                   class="flex-grow p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all">
-            <button type="submit"
-                    class="p-3 bg-purple-600 rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-lg">
-                Add Item
-            </button>
-        </form>
-        <div id="shopping-list-container">
-            <ul id="shopping-list" class="space-y-4"></ul>
+
+        <!-- Main Dashboard Section (After Login) -->
+        <div id="dashboardSection" class="w-full hidden">
+            <header class="flex flex-col items-center justify-between mb-8">
+                <h1 class="text-4xl font-extrabold text-indigo-600 mb-2">Spendtracker Dashboard</h1>
+                <p class="text-lg text-gray-600 mb-4">
+                    <span id="userEmailDisplay"></span>
+                    <button id="logoutButton" class="text-indigo-500 hover:text-indigo-700 font-semibold ml-2">Logout</button>
+                </p>
+            </header>
+
+            <!-- Add New Expense Form -->
+            <section class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Add New Expense</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label for="expenseName" class="text-sm font-semibold text-gray-600 mb-1">Expense Name</label>
+                        <input type="text" id="expenseName" placeholder="e.g., Groceries" class="input-field">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="amount" class="text-sm font-semibold text-gray-600 mb-1">Amount ($)</label>
+                        <input type="number" id="amount" placeholder="e.g., 50.00" class="input-field">
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="category" class="text-sm font-semibold text-gray-600 mb-1">Category</label>
+                        <select id="category" class="input-field">
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Food">Food</option>
+                            <option value="Housing">Housing</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="date" class="text-sm font-semibold text-gray-600 mb-1">Date</label>
+                        <input type="date" id="date" class="input-field">
+                    </div>
+                </div>
+                <div class="mt-6 text-center">
+                    <button id="addExpenseButton" class="bg-emerald-500 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-emerald-600 transition-colors transform hover:scale-105">
+                        Add Expense
+                    </button>
+                </div>
+                <p id="expenseMessage" class="text-center text-sm text-red-500 mt-2"></p>
+            </section>
+
+            <hr class="border-gray-300 my-8">
+
+            <!-- Your Expenses List -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Your Expenses</h2>
+                <div id="expensesList" class="space-y-4">
+                    <p class="text-center text-gray-500 italic">No expenses added yet.</p>
+                </div>
+            </section>
+
+            <hr class="border-gray-300 my-8">
+
+            <!-- Spending Summary -->
+            <section>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Spending Summary</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-gray-100 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                        <p class="text-gray-600 text-sm">Total Spent</p>
+                        <p id="totalSpent" class="text-3xl font-bold text-gray-800 mt-1">$0.00</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                        <p class="text-gray-600 text-sm">Average Daily</p>
+                        <p id="avgDaily" class="text-3xl font-bold text-gray-800 mt-1">$0.00</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                        <p class="text-gray-600 text-sm">Largest Expense</p>
+                        <p id="largestExpense" class="text-3xl font-bold text-gray-800 mt-1">$0.00</p>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
-    <!-- The Modal -->
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <p id="modal-message" class="text-white text-lg"></p>
+    <!-- Custom Modal for Alerts and Confirmation -->
+    <div id="customModal" class="modal fixed inset-0 z-50 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm space-y-4 text-center transform scale-95 opacity-0 transition-all duration-300 ease-in-out">
+            <h3 id="modalTitle" class="text-xl font-bold text-gray-800"></h3>
+            <p id="modalMessage" class="text-gray-600"></p>
+            <div id="modalButtons" class="flex justify-end space-x-2 mt-4">
+                <button id="modalCancel" class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400">Cancel</button>
+                <button id="modalConfirm" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">Confirm</button>
+            </div>
         </div>
     </div>
+
+    <!-- Edit Expense Modal -->
+    <div id="editModal" class="modal fixed inset-0 z-50 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md space-y-4 text-left transform scale-95 opacity-0 transition-all duration-300 ease-in-out">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Edit Expense</h3>
+            <div class="space-y-4">
+                <div>
+                    <label for="modalEditName" class="block text-sm font-semibold text-gray-600 mb-1">Expense Name</label>
+                    <input type="text" id="modalEditName" class="input-field-modal">
+                </div>
+                <div>
+                    <label for="modalEditAmount" class="block text-sm font-semibold text-gray-600 mb-1">Amount ($)</label>
+                    <input type="number" id="modalEditAmount" class="input-field-modal">
+                </div>
+                <div>
+                    <label for="modalEditCategory" class="block text-sm font-semibold text-gray-600 mb-1">Category</label>
+                    <select id="modalEditCategory" class="input-field-modal">
+                        <option value="Food">Food</option>
+                        <option value="Housing">Housing</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="modalEditDate" class="block text-sm font-semibold text-gray-600 mb-1">Date</label>
+                    <input type="date" id="modalEditDate" class="input-field-modal">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-4">
+                <button id="modalEditCancel" class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400">Cancel</button>
+                <button id="modalEditSave" class="bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, doc, query, where, getDocs, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by the environment
+        // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
 
-        // UI Elements
-        const itemInput = document.getElementById('item-input');
-        const addItemForm = document.getElementById('add-item-form');
-        const shoppingList = document.getElementById('shopping-list');
-        const userIdDisplay = document.getElementById('user-id');
-        const modal = document.getElementById('myModal');
-        const modalMessage = document.getElementById('modal-message');
-        const closeModalButton = document.querySelector('.close-button');
+        let app, db, auth;
+        let expenses = [];
+        let userId = null;
 
-        // Function to show custom modal message
-        function showModal(message) {
-            modalMessage.textContent = message;
-            modal.style.display = 'flex';
-        }
+        // --- DOM Elements ---
+        const authSection = document.getElementById('authSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const authEmailInput = document.getElementById('authEmail');
+        const authPasswordInput = document.getElementById('authPassword');
+        const registerButton = document.getElementById('registerButton');
+        const loginButton = document.getElementById('loginButton');
+        const authMessage = document.getElementById('authMessage');
+        const logoutButton = document.getElementById('logoutButton');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const addExpenseButton = document.getElementById('addExpenseButton');
+        const expensesList = document.getElementById('expensesList');
+        const expenseMessage = document.getElementById('expenseMessage');
+        const totalSpentDisplay = document.getElementById('totalSpent');
+        const avgDailyDisplay = document.getElementById('avgDaily');
+        const largestExpenseDisplay = document.getElementById('largestExpense');
+        const customModal = document.getElementById('customModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalConfirmBtn = document.getElementById('modalConfirm');
+        const modalCancelBtn = document.getElementById('modalCancel');
+        const editModal = document.getElementById('editModal');
+        const modalEditName = document.getElementById('modalEditName');
+        const modalEditAmount = document.getElementById('modalEditAmount');
+        const modalEditCategory = document.getElementById('modalEditCategory');
+        const modalEditDate = document.getElementById('modalEditDate');
+        const modalEditSaveBtn = document.getElementById('modalEditSave');
+        const modalEditCancelBtn = document.getElementById('modalEditCancel');
 
-        // Close modal when the user clicks on <span> (x)
-        closeModalButton.onclick = function() {
-            modal.style.display = 'none';
-        };
+        // --- Firebase Initialization & Authentication ---
+        const initializeFirebase = async () => {
+            try {
+                if (Object.keys(firebaseConfig).length > 0) {
+                    app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                    console.log("Firebase initialized successfully.");
 
-        // Close modal when the user clicks anywhere outside of the modal
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = 'none';
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            userEmailDisplay.textContent = user.email || 'Anonymous User';
+                            authSection.classList.add('hidden');
+                            dashboardSection.classList.remove('hidden');
+                            await listenForExpenses();
+                            console.log("User authenticated:", userId);
+                        } else {
+                            userId = null;
+                            authSection.classList.remove('hidden');
+                            dashboardSection.classList.add('hidden');
+                            if (window.location.hash.substring(1) !== 'login-error') {
+                                showMessage('You are logged out.', 'success');
+                            }
+                            console.log("User logged out.");
+                        }
+                        hideLoading();
+                    });
+
+                    // Sign in with custom token if available, otherwise sign in anonymously
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("Signed in with custom token.");
+                    } else {
+                        await signInAnonymously(auth);
+                        console.log("Signed in anonymously.");
+                    }
+                } else {
+                    showMessage('Firebase config is missing.', 'error');
+                    console.error("Firebase config is missing.");
+                    hideLoading();
+                }
+            } catch (e) {
+                console.error("Error initializing Firebase:", e);
+                showMessage(`Firebase initialization failed: ${e.message}`, 'error');
+                hideLoading();
             }
         };
 
-        // Function to handle authentication and database setup
-        async function setupApp() {
+        const showLoading = () => loadingSpinner.classList.remove('hidden');
+        const hideLoading = () => loadingSpinner.classList.add('hidden');
+
+        const showMessage = (message, type) => {
+            expenseMessage.textContent = message;
+            if (type === 'error') {
+                expenseMessage.classList.add('text-red-500');
+                expenseMessage.classList.remove('text-green-500');
+            } else {
+                expenseMessage.classList.add('text-green-500');
+                expenseMessage.classList.remove('text-red-500');
+            }
+            setTimeout(() => expenseMessage.textContent = '', 3000);
+        };
+
+        const showCustomModal = (title, message, isConfirm = false, onConfirm = null) => {
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            if (isConfirm) {
+                modalConfirmBtn.classList.remove('hidden');
+                modalConfirmBtn.onclick = () => {
+                    if (onConfirm) onConfirm();
+                    hideCustomModal();
+                };
+            } else {
+                modalConfirmBtn.classList.add('hidden');
+            }
+            customModal.classList.remove('hidden');
+            setTimeout(() => {
+                customModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        };
+
+        const hideCustomModal = () => {
+            customModal.querySelector('div').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => customModal.classList.add('hidden'), 300);
+        };
+
+        modalCancelBtn.onclick = hideCustomModal;
+
+        // --- Firebase Firestore Functions ---
+        const listenForExpenses = async () => {
+            showLoading();
             try {
-                // Authenticate the user
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                const user = auth.currentUser;
-                const userId = user.uid;
-                userIdDisplay.textContent = userId;
-
-                // Create a reference to the shopping list collection in Firestore
-                const listCollectionRef = collection(db, `artifacts/${appId}/public/data/shopping_list`);
-
-                // Set up a real-time listener for the shopping list
-                onSnapshot(listCollectionRef, (snapshot) => {
-                    const items = [];
-                    snapshot.forEach((doc) => {
-                        const itemData = doc.data();
-                        items.push({
+                const q = query(collection(db, `artifacts/${appId}/users/${userId}/expenses`));
+                onSnapshot(q, (querySnapshot) => {
+                    const fetchedExpenses = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        fetchedExpenses.push({
                             id: doc.id,
-                            name: itemData.name,
-                            checked: itemData.checked,
-                            userId: itemData.userId
+                            name: data.name,
+                            amount: data.amount,
+                            category: data.category,
+                            date: data.date ? data.date.toDate().toISOString().split('T')[0] : '',
                         });
                     });
-                    renderShoppingList(items, userId);
+                    expenses = fetchedExpenses;
+                    renderExpenses();
+                    updateSummary();
+                    hideLoading();
+                }, (error) => {
+                    console.error("Error listening for expenses: ", error);
+                    showCustomModal("Error", "Failed to load expenses. Please try again.");
+                    hideLoading();
                 });
-
-                // Handle adding a new item to the list
-                addItemForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const itemName = itemInput.value.trim();
-                    if (itemName) {
-                        try {
-                            // Add a new document to the collection
-                            await addDoc(listCollectionRef, {
-                                name: itemName,
-                                checked: false,
-                                userId: userId,
-                                timestamp: Date.now()
-                            });
-                            itemInput.value = '';
-                        } catch (error) {
-                            console.error("Error adding document: ", error);
-                            showModal("Error adding item: " + error.message);
-                        }
-                    } else {
-                        showModal("Please enter an item name.");
-                    }
-                });
-
-            } catch (error) {
-                console.error("Firebase setup failed:", error);
-                showModal("Failed to connect to the database: " + error.message);
+            } catch (e) {
+                console.error("Error setting up listener:", e);
+                showCustomModal("Error", "Failed to load expenses. Please try again.");
+                hideLoading();
             }
-        }
+        };
 
-        // Function to render the shopping list on the page
-        function renderShoppingList(items, currentUserId) {
-            shoppingList.innerHTML = ''; // Clear the list
-            if (items.length === 0) {
-                shoppingList.innerHTML = '<p class="text-center text-gray-400">The list is currently empty.</p>';
+        const addExpense = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('expenseName').value.trim();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+            const date = document.getElementById('date').value;
+
+            if (!name || isNaN(amount) || !category || !date) {
+                showMessage('Please fill in all fields.', 'error');
+                return;
+            }
+
+            showLoading();
+            try {
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/expenses`), {
+                    name,
+                    amount,
+                    category,
+                    date: Timestamp.fromDate(new Date(date)),
+                    createdAt: Timestamp.now(),
+                });
+                showMessage('Expense added successfully!', 'success');
+            } catch (e) {
+                console.error("Error adding document:", e);
+                showMessage(`Failed to add expense: ${e.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+            // Clear the form
+            document.getElementById('expenseName').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('date').value = '';
+        };
+
+        const deleteExpense = (id) => {
+            showCustomModal("Confirm Deletion", "Are you sure you want to delete this expense? This action cannot be undone.", true, async () => {
+                showLoading();
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/expenses`, id));
+                    showMessage('Expense deleted successfully!', 'success');
+                } catch (e) {
+                    console.error("Delete expense error:", e);
+                    showCustomModal("Error", "Failed to delete expense. Please try again.");
+                } finally {
+                    hideLoading();
+                }
+            });
+        };
+
+        const editExpense = (expenseToEdit) => {
+            // Set modal form values
+            modalEditName.value = expenseToEdit.name;
+            modalEditAmount.value = expenseToEdit.amount;
+            modalEditCategory.value = expenseToEdit.category;
+            modalEditDate.value = expenseToEdit.date;
+            
+            editModal.classList.remove('hidden');
+            setTimeout(() => {
+                editModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
+            }, 10);
+
+            // Save changes logic
+            modalEditSaveBtn.onclick = async () => {
+                const newName = modalEditName.value.trim();
+                const newAmount = parseFloat(modalEditAmount.value);
+                const newCategory = modalEditCategory.value;
+                const newDate = modalEditDate.value;
+
+                if (!newName || isNaN(newAmount) || !newCategory || !newDate) {
+                    showCustomModal("Error", "Please fill in all fields.");
+                    return;
+                }
+
+                showLoading();
+                try {
+                    const expenseRef = doc(db, `artifacts/${appId}/users/${userId}/expenses`, expenseToEdit.id);
+                    await updateDoc(expenseRef, {
+                        name: newName,
+                        amount: newAmount,
+                        category: newCategory,
+                        date: Timestamp.fromDate(new Date(newDate))
+                    });
+                    showMessage('Expense updated successfully!', 'success');
+                } catch (e) {
+                    console.error("Update expense error:", e);
+                    showCustomModal("Error", "Failed to update expense. Please try again.");
+                } finally {
+                    hideLoading();
+                    hideEditModal();
+                }
+            };
+        };
+
+        const hideEditModal = () => {
+            editModal.querySelector('div').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => editModal.classList.add('hidden'), 300);
+        };
+        modalEditCancelBtn.onclick = hideEditModal;
+
+        // --- Render Functions ---
+        const renderExpenses = () => {
+            expensesList.innerHTML = '';
+            if (expenses.length === 0) {
+                expensesList.innerHTML = '<p class="text-center text-gray-500 italic">No expenses added yet.</p>';
             } else {
-                // Sort items by timestamp (not in Firestore query to avoid index issues)
-                items.sort((a, b) => a.timestamp - b.timestamp);
+                // Sort expenses by date in descending order (newest first)
+                const sortedExpenses = expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                items.forEach(item => {
-                    const listItem = document.createElement('li');
-                    listItem.className = `flex items-center justify-between p-4 rounded-lg transition-all ${item.checked ? 'bg-gray-700 opacity-60 line-through' : 'bg-gray-800'}`;
-                    listItem.innerHTML = `
-                        <div class="flex items-center flex-grow">
-                            <input type="checkbox" data-id="${item.id}" ${item.checked ? 'checked' : ''} 
-                                   class="form-checkbox h-5 w-5 text-purple-600 rounded focus:ring-purple-500 mr-4 cursor-pointer bg-gray-600 border-gray-500">
-                            <span class="flex-grow text-white">${item.name}</span>
-                            <span class="text-xs text-gray-400 ml-2">(${item.userId.substring(0, 4)}...)</span>
+                sortedExpenses.forEach(expense => {
+                    const expenseItem = document.createElement('div');
+                    expenseItem.classList.add('bg-gray-50', 'rounded-lg', 'shadow-sm', 'p-4', 'flex', 'items-center', 'justify-between');
+                    expenseItem.innerHTML = `
+                        <div class="flex-1 space-y-1">
+                            <h3 class="font-semibold text-gray-800">${expense.name} - $${expense.amount.toFixed(2)}</h3>
+                            <p class="text-sm text-gray-600">Category: ${expense.category}</p>
+                            <p class="text-sm text-gray-400">Date: ${expense.date}</p>
                         </div>
-                        <button data-id="${item.id}"
-                                class="delete-button p-2 text-red-400 hover:text-red-600 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
+                        <div class="flex space-x-2">
+                            <button class="text-indigo-500 hover:text-indigo-700 edit-btn" data-id="${expense.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-500 hover:text-red-700 delete-btn" data-id="${expense.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     `;
-                    shoppingList.appendChild(listItem);
-
-                    // Add event listeners for the checkbox and delete button
-                    listItem.querySelector('input[type="checkbox"]').addEventListener('change', async (e) => {
-                        const docId = e.target.dataset.id;
-                        const docRef = doc(db, `artifacts/${appId}/public/data/shopping_list`, docId);
-                        try {
-                            await updateDoc(docRef, { checked: e.target.checked });
-                        } catch (error) {
-                            console.error("Error updating document:", error);
-                            showModal("Error updating item: " + error.message);
-                        }
-                    });
-
-                    listItem.querySelector('.delete-button').addEventListener('click', async (e) => {
-                        const docId = e.currentTarget.dataset.id;
-                        const docRef = doc(db, `artifacts/${appId}/public/data/shopping_list`, docId);
-                        try {
-                            await deleteDoc(docRef);
-                        } catch (error) {
-                            console.error("Error deleting document:", error);
-                            showModal("Error deleting item: " + error.message);
+                    expensesList.appendChild(expenseItem);
+                });
+                
+                document.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        const expenseToEdit = expenses.find(exp => exp.id === id);
+                        if (expenseToEdit) {
+                            editExpense(expenseToEdit);
                         }
                     });
                 });
+
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        deleteExpense(e.currentTarget.dataset.id);
+                    });
+                });
             }
-        }
+        };
 
-        // Start the application
-        setupApp();
+        const updateSummary = () => {
+            const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            totalSpentDisplay.textContent = `$${total.toFixed(2)}`;
 
+            let largestAmount = 0;
+            if (expenses.length > 0) {
+                const largestExpense = expenses.reduce((max, exp) => exp.amount > max.amount ? exp : max, expenses[0]);
+                largestAmount = largestExpense.amount;
+            }
+            largestExpenseDisplay.textContent = `$${largestAmount.toFixed(2)}`;
+
+            const dailySpending = {};
+            expenses.forEach(exp => {
+                const date = exp.date;
+                if (!dailySpending[date]) {
+                    dailySpending[date] = 0;
+                }
+                dailySpending[date] += exp.amount;
+            });
+            const totalDays = Object.keys(dailySpending).length;
+            const avgDaily = totalDays > 0 ? total / totalDays : 0;
+            avgDailyDisplay.textContent = `$${avgDaily.toFixed(2)}`;
+        };
+
+        // --- Event Listeners ---
+        loginButton.addEventListener('click', async () => {
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+            showLoading();
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage('Logged in successfully!', 'success');
+            } catch (e) {
+                console.error("Login failed:", e);
+                showMessage(`Login failed: ${e.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        registerButton.addEventListener('click', async () => {
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+            showLoading();
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessage('Account created successfully!', 'success');
+            } catch (e) {
+                console.error("Registration failed:", e);
+                showMessage(`Registration failed: ${e.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            showLoading();
+            try {
+                await signOut(auth);
+                showMessage('Logged out successfully!', 'success');
+            } catch (e) {
+                console.error("Logout failed:", e);
+                showMessage(`Logout failed: ${e.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        addExpenseButton.addEventListener('click', addExpense);
+
+        // Initialize the app on window load
+        window.onload = initializeFirebase;
     </script>
 </body>
 </html>
