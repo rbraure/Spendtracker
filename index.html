@@ -550,10 +550,14 @@
             showLoading();
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
-                showAuthMessage('Account created successfully! You can now log in.', 'success');
+                showAuthMessage('Account created successfully! Please use the Login button to sign in.', 'success');
             } catch (e) {
                 console.error("Registration failed:", e);
-                showAuthMessage(`Registration failed: ${e.message}`, 'error');
+                let errorMessage = e.message;
+                if (e.code === 'auth/email-already-in-use') {
+                    errorMessage = 'This email is already registered. Please use the Login button to sign in.';
+                }
+                showAuthMessage(`Registration failed: ${errorMessage}`, 'error');
             } finally {
                 hideLoading();
             }
