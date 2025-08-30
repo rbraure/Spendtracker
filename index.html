@@ -247,7 +247,7 @@
                             authSection.classList.remove('hidden');
                             dashboardSection.classList.add('hidden');
                             if (window.location.hash.substring(1) !== 'login-error') {
-                                showMessage('You are logged out.', 'success');
+                                showAuthMessage('You are logged out.', 'success');
                             }
                             console.log("User logged out.");
                         }
@@ -263,13 +263,13 @@
                         console.log("Signed in anonymously.");
                     }
                 } else {
-                    showMessage('Firebase config is missing.', 'error');
+                    showAuthMessage('Firebase config is missing.', 'error');
                     console.error("Firebase config is missing.");
                     hideLoading();
                 }
             } catch (e) {
                 console.error("Error initializing Firebase:", e);
-                showMessage(`Firebase initialization failed: ${e.message}`, 'error');
+                showAuthMessage(`Firebase initialization failed: ${e.message}`, 'error');
                 hideLoading();
             }
         };
@@ -277,15 +277,16 @@
         const showLoading = () => loadingSpinner.classList.remove('hidden');
         const hideLoading = () => loadingSpinner.classList.add('hidden');
 
-        const showMessage = (message, type) => {
+        const showAuthMessage = (message, type) => {
+            authMessage.textContent = message;
+            authMessage.classList.remove('text-red-500', 'text-green-500');
+            authMessage.classList.add(type === 'error' ? 'text-red-500' : 'text-green-500');
+            setTimeout(() => authMessage.textContent = '', 3000);
+        };
+        const showExpenseMessage = (message, type) => {
             expenseMessage.textContent = message;
-            if (type === 'error') {
-                expenseMessage.classList.add('text-red-500');
-                expenseMessage.classList.remove('text-green-500');
-            } else {
-                expenseMessage.classList.add('text-green-500');
-                expenseMessage.classList.remove('text-red-500');
-            }
+            expenseMessage.classList.remove('text-red-500', 'text-green-500');
+            expenseMessage.classList.add(type === 'error' ? 'text-red-500' : 'text-green-500');
             setTimeout(() => expenseMessage.textContent = '', 3000);
         };
 
@@ -355,7 +356,7 @@
             const date = document.getElementById('date').value;
 
             if (!name || isNaN(amount) || !category || !date) {
-                showMessage('Please fill in all fields.', 'error');
+                showExpenseMessage('Please fill in all fields.', 'error');
                 return;
             }
 
@@ -368,10 +369,10 @@
                     date: Timestamp.fromDate(new Date(date)),
                     createdAt: Timestamp.now(),
                 });
-                showMessage('Expense added successfully!', 'success');
+                showExpenseMessage('Expense added successfully!', 'success');
             } catch (e) {
                 console.error("Error adding document:", e);
-                showMessage(`Failed to add expense: ${e.message}`, 'error');
+                showExpenseMessage(`Failed to add expense: ${e.message}`, 'error');
             } finally {
                 hideLoading();
             }
@@ -387,7 +388,7 @@
                 showLoading();
                 try {
                     await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/expenses`, id));
-                    showMessage('Expense deleted successfully!', 'success');
+                    showExpenseMessage('Expense deleted successfully!', 'success');
                 } catch (e) {
                     console.error("Delete expense error:", e);
                     showCustomModal("Error", "Failed to delete expense. Please try again.");
@@ -430,7 +431,7 @@
                         category: newCategory,
                         date: Timestamp.fromDate(new Date(newDate))
                     });
-                    showMessage('Expense updated successfully!', 'success');
+                    showExpenseMessage('Expense updated successfully!', 'success');
                 } catch (e) {
                     console.error("Update expense error:", e);
                     showCustomModal("Error", "Failed to update expense. Please try again.");
@@ -523,13 +524,17 @@
         loginButton.addEventListener('click', async () => {
             const email = authEmailInput.value;
             const password = authPasswordInput.value;
+            if (!email || !password) {
+                showAuthMessage('Please enter both email and password.', 'error');
+                return;
+            }
             showLoading();
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                showMessage('Logged in successfully!', 'success');
+                showAuthMessage('Logged in successfully!', 'success');
             } catch (e) {
                 console.error("Login failed:", e);
-                showMessage(`Login failed: ${e.message}`, 'error');
+                showAuthMessage(`Login failed: ${e.message}`, 'error');
             } finally {
                 hideLoading();
             }
@@ -538,13 +543,17 @@
         registerButton.addEventListener('click', async () => {
             const email = authEmailInput.value;
             const password = authPasswordInput.value;
+            if (!email || !password || password.length < 6) {
+                showAuthMessage('Please enter a valid email and a password of at least 6 characters.', 'error');
+                return;
+            }
             showLoading();
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
-                showMessage('Account created successfully!', 'success');
+                showAuthMessage('Account created successfully! You can now log in.', 'success');
             } catch (e) {
                 console.error("Registration failed:", e);
-                showMessage(`Registration failed: ${e.message}`, 'error');
+                showAuthMessage(`Registration failed: ${e.message}`, 'error');
             } finally {
                 hideLoading();
             }
@@ -554,10 +563,10 @@
             showLoading();
             try {
                 await signOut(auth);
-                showMessage('Logged out successfully!', 'success');
+                showAuthMessage('Logged out successfully!', 'success');
             } catch (e) {
                 console.error("Logout failed:", e);
-                showMessage(`Logout failed: ${e.message}`, 'error');
+                showAuthMessage(`Logout failed: ${e.message}`, 'error');
             } finally {
                 hideLoading();
             }
