@@ -227,6 +227,7 @@
 
         // --- Firebase Initialization & Authentication ---
         const initializeFirebase = async () => {
+            showLoading();
             try {
                 if (Object.keys(firebaseConfig).length > 0) {
                     app = initializeApp(firebaseConfig);
@@ -234,6 +235,8 @@
                     auth = getAuth(app);
                     console.log("Firebase initialized successfully.");
 
+                    // This is the key change: Listen for auth state changes first,
+                    // which will handle the initial token login automatically.
                     onAuthStateChanged(auth, async (user) => {
                         if (user) {
                             userId = user.uid;
@@ -243,25 +246,18 @@
                             await listenForExpenses();
                             console.log("User authenticated:", userId);
                         } else {
+                            // If no user is logged in, show the auth section.
                             userId = null;
                             authSection.classList.remove('hidden');
                             dashboardSection.classList.add('hidden');
-                            if (window.location.hash.substring(1) !== 'login-error') {
-                                showAuthMessage('You are logged out.', 'success');
-                            }
+                            showAuthMessage('Please login to access the tracker.', 'success');
                             console.log("User logged out.");
                         }
                         hideLoading();
                     });
 
-                    // Sign in with custom token if available, otherwise sign in anonymously
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("Signed in with custom token.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("Signed in anonymously.");
-                    }
+                    // We no longer manually sign in with the custom token or anonymously here,
+                    // as onAuthStateChanged handles it automatically on app load.
                 } else {
                     showAuthMessage('Firebase config is missing.', 'error');
                     console.error("Firebase config is missing.");
