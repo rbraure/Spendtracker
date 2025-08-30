@@ -3,592 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Spending Tracker</title>
-    <!-- Tailwind CSS -->
+    <title>Collaborative Shopping List</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <!-- Google Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e;
+            color: #e0e0e0;
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
+        .container {
             max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #2e2e50;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px;
-            }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2e2e50;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 min-h-screen">
-    <!-- Main Application Container -->
-    <div id="appContainer" class="hidden">
-        <div class="container mx-auto p-4 md:p-8 space-y-8 max-w-4xl">
-            <!-- Header -->
-            <header class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg">
-                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white flex items-center">
-                    <i class="fas fa-wallet mr-2 text-indigo-600"></i>
-                    Modern Spending Tracker
-                </h1>
-                <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-300">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </header>
-
-            <!-- Main Content Area -->
-            <main class="space-y-8">
-                <!-- Spending Summary Section -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">Spending Summary</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-inner">
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Total Spending</p>
-                            <p id="totalSpending" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">$0.00</p>
-                        </div>
-                        <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-inner">
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Average Daily Spending</p>
-                            <p id="averageDailySpending" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">$0.00</p>
-                        </div>
-                        <div class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-inner">
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Monthly Budget</p>
-                            <p id="monthlyBudget" class="text-2xl font-bold text-gray-900 dark:text-white mt-1">$0.00</p>
-                            <button id="setBudgetBtn" class="mt-2 text-indigo-600 hover:text-indigo-700 text-sm font-semibold">
-                                <i class="fas fa-edit mr-1"></i> Set Budget
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Expense Charts Section -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">Expense Analysis</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="chart-container">
-                            <canvas id="categoryChart"></canvas>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="dailyChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add New Expense Section -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">Add New Expense</h2>
-                    <form id="expenseForm" class="space-y-4">
-                        <div>
-                            <label for="expenseName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                            <input type="text" id="expenseName" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white p-2">
-                        </div>
-                        <div>
-                            <label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount ($)</label>
-                            <input type="number" id="amount" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white p-2">
-                        </div>
-                        <div>
-                            <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                            <select id="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white p-2">
-                                <option value="Food">Food</option>
-                                <option value="Transport">Transport</option>
-                                <option value="Housing">Housing</option>
-                                <option value="Shopping">Shopping</option>
-                                <option value="Entertainment">Entertainment</option>
-                                <option value="Bills">Bills</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
-                            <input type="date" id="date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-gray-50 dark:bg-gray-700 dark:text-white p-2">
-                        </div>
-                        <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg flex items-center justify-center">
-                            <i class="fas fa-plus-circle mr-2"></i> Add Expense
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Your Expenses Section -->
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">Your Expenses</h2>
-                    <ul id="expenseList" class="divide-y divide-gray-200 dark:divide-gray-700">
-                        <!-- Expense items will be dynamically added here -->
-                    </ul>
-                </div>
-            </main>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-6 text-purple-400">Collaborative Shopping List</h1>
+        <div class="bg-indigo-900 bg-opacity-40 p-4 rounded-lg mb-4 text-center">
+            <h2 class="text-lg font-semibold">User ID:</h2>
+            <p id="user-id" class="text-sm break-all font-mono text-purple-200 mt-2"></p>
+        </div>
+        <form id="add-item-form" class="flex flex-col sm:flex-row gap-4 mb-6">
+            <input type="text" id="item-input" placeholder="Add a new item..." required
+                   class="flex-grow p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all">
+            <button type="submit"
+                    class="p-3 bg-purple-600 rounded-lg font-semibold hover:bg-purple-700 transition-colors shadow-lg">
+                Add Item
+            </button>
+        </form>
+        <div id="shopping-list-container">
+            <ul id="shopping-list" class="space-y-4"></ul>
         </div>
     </div>
 
-    <!-- Login/Register Page -->
-    <div id="authContainer" class="hidden">
-        <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-            <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg max-w-md w-full text-center space-y-6">
-                <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white">Loading...</h2>
-                <p class="text-gray-600 dark:text-gray-400">Please wait while we set up your session.</p>
-            </div>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p id="modal-message" class="text-white text-lg"></p>
         </div>
-    </div>
-
-    <!-- Modal for setting budget and confirmation -->
-    <div id="modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm m-4">
-            <h3 id="modalTitle" class="text-xl font-bold text-gray-900 dark:text-white mb-4">Set Monthly Budget</h3>
-            <div id="modalContent" class="space-y-4">
-                <input type="number" id="budgetInput" placeholder="Enter new budget" step="0.01" class="w-full rounded-lg border-gray-300 shadow-sm p-3 bg-gray-50 dark:bg-gray-700 dark:text-white">
-            </div>
-            <div id="modalButtons" class="mt-6 flex justify-end space-x-2">
-                <button id="modalConfirmBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700">Confirm</button>
-                <button id="modalCancelBtn" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Message Display -->
-    <div id="messageContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-transform duration-500 transform-gpu opacity-0">
-        <div id="messageBox" class="rounded-lg px-6 py-3 font-semibold text-white shadow-lg"></div>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by the Canvas environment
+        // Global variables provided by the environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
+        
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         // UI Elements
-        const authContainer = document.getElementById('authContainer');
-        const appContainer = document.getElementById('appContainer');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const expenseForm = document.getElementById('expenseForm');
-        const expenseList = document.getElementById('expenseList');
-        const totalSpendingEl = document.getElementById('totalSpending');
-        const averageDailySpendingEl = document.getElementById('averageDailySpending');
-        const monthlyBudgetEl = document.getElementById('monthlyBudget');
-        const setBudgetBtn = document.getElementById('setBudgetBtn');
-        const modal = document.getElementById('modal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
-        const modalConfirmBtn = document.getElementById('modalConfirmBtn');
-        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const itemInput = document.getElementById('item-input');
+        const addItemForm = document.getElementById('add-item-form');
+        const shoppingList = document.getElementById('shopping-list');
+        const userIdDisplay = document.getElementById('user-id');
+        const modal = document.getElementById('myModal');
+        const modalMessage = document.getElementById('modal-message');
+        const closeModalButton = document.querySelector('.close-button');
 
-        let expensesChart, dailyChart;
-        let unsubscribe;
-
-        // Utility Functions
-        function showMessage(message, type) {
-            const messageContainer = document.getElementById('messageContainer');
-            const messageBox = document.getElementById('messageBox');
-            messageBox.textContent = message;
-            messageBox.className = `rounded-lg px-6 py-3 font-semibold text-white shadow-lg`;
-            if (type === 'success') {
-                messageBox.classList.add('bg-green-500');
-            } else if (type === 'error') {
-                messageBox.classList.add('bg-red-500');
-            }
-            messageContainer.classList.remove('opacity-0');
-            messageContainer.classList.add('opacity-100');
-            setTimeout(() => {
-                messageContainer.classList.remove('opacity-100');
-                messageContainer.classList.add('opacity-0');
-            }, 3000);
+        // Function to show custom modal message
+        function showModal(message) {
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
         }
 
-        function clearExpenseForm() {
-            expenseForm.reset();
-        }
+        // Close modal when the user clicks on <span> (x)
+        closeModalButton.onclick = function() {
+            modal.style.display = 'none';
+        };
 
-        // Authentication State Listener
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                authContainer.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-                console.log("User is signed in:", user.uid);
-                await loadExpenses(user.uid);
-                await loadBudget(user.uid);
-            } else {
-                authContainer.classList.remove('hidden');
-                appContainer.classList.add('hidden');
-                console.log("User is signed out.");
-                if (unsubscribe) {
-                    unsubscribe();
-                }
+        // Close modal when the user clicks anywhere outside of the modal
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
             }
-        });
+        };
 
-        // Initial sign-in with custom token or anonymously
-        async function signIn() {
+        // Function to handle authentication and database setup
+        async function setupApp() {
             try {
+                // Authenticate the user
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (error) {
-                console.error("Authentication failed: ", error);
-                showMessage(`Authentication failed: ${error.message}`, 'error');
-            }
-        }
-        
-        signIn();
+                const user = auth.currentUser;
+                const userId = user.uid;
+                userIdDisplay.textContent = userId;
 
-        logoutBtn.addEventListener('click', async () => {
-            await signOut(auth);
-            showMessage('Logged out successfully.', 'success');
-        });
+                // Create a reference to the shopping list collection in Firestore
+                const listCollectionRef = collection(db, `artifacts/${appId}/public/data/shopping_list`);
 
-        // Load Expenses from Firestore
-        async function loadExpenses(userId) {
-            console.log("Loading expenses for user:", userId);
-            const expensesRef = collection(db, `artifacts/${appId}/users/${userId}/expenses`);
-            // Removing orderBy to avoid "The query requires an index" error
-            const q = query(expensesRef);
-
-            unsubscribe = onSnapshot(q, (snapshot) => {
-                const expenses = [];
-                snapshot.forEach(doc => {
-                    expenses.push({ id: doc.id, ...doc.data() });
+                // Set up a real-time listener for the shopping list
+                onSnapshot(listCollectionRef, (snapshot) => {
+                    const items = [];
+                    snapshot.forEach((doc) => {
+                        const itemData = doc.data();
+                        items.push({
+                            id: doc.id,
+                            name: itemData.name,
+                            checked: itemData.checked,
+                            userId: itemData.userId
+                        });
+                    });
+                    renderShoppingList(items, userId);
                 });
-                // Sorting data in JavaScript to avoid Firestore index errors
-                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderExpenses(expenses);
-                updateSummary(expenses);
-                updateCharts(expenses);
-            }, (error) => {
-                console.error("Error loading expenses:", error);
-                showMessage('Failed to load expenses. Please try again.', 'error');
-            });
+
+                // Handle adding a new item to the list
+                addItemForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const itemName = itemInput.value.trim();
+                    if (itemName) {
+                        try {
+                            // Add a new document to the collection
+                            await addDoc(listCollectionRef, {
+                                name: itemName,
+                                checked: false,
+                                userId: userId,
+                                timestamp: Date.now()
+                            });
+                            itemInput.value = '';
+                        } catch (error) {
+                            console.error("Error adding document: ", error);
+                            showModal("Error adding item: " + error.message);
+                        }
+                    } else {
+                        showModal("Please enter an item name.");
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase setup failed:", error);
+                showModal("Failed to connect to the database: " + error.message);
+            }
         }
 
-        // Add New Expense
-        expenseForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const expenseName = document.getElementById('expenseName').value;
-            const amount = document.getElementById('amount').value;
-            const category = document.getElementById('category').value;
-            const date = document.getElementById('date').value;
+        // Function to render the shopping list on the page
+        function renderShoppingList(items, currentUserId) {
+            shoppingList.innerHTML = ''; // Clear the list
+            if (items.length === 0) {
+                shoppingList.innerHTML = '<p class="text-center text-gray-400">The list is currently empty.</p>';
+            } else {
+                // Sort items by timestamp (not in Firestore query to avoid index issues)
+                items.sort((a, b) => a.timestamp - b.timestamp);
 
-            if (!expenseName || !amount || !category || !date) {
-                showMessage('Please fill in all fields.', 'error');
-                return;
-            }
-
-            const newExpense = {
-                name: expenseName,
-                amount: parseFloat(amount),
-                category: category,
-                date: date
-            };
-
-            try {
-                const expensesCollectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/expenses`);
-                await addDoc(expensesCollectionRef, newExpense);
-                showMessage('Expense added successfully!', 'success');
-                clearExpenseForm();
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                showMessage(`Failed to add expense: ${error.message}`, 'error');
-            }
-        });
-
-        // Render Expenses
-        function renderExpenses(expenses) {
-            expenseList.innerHTML = '';
-            if (expenses.length === 0) {
-                expenseList.innerHTML = `<li class="p-4 text-center text-gray-500 dark:text-gray-400">No expenses added yet.</li>`;
-                return;
-            }
-            expenses.forEach(expense => {
-                const li = document.createElement('li');
-                li.className = 'p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 rounded-lg';
-                li.innerHTML = `
-                    <div class="flex-1">
-                        <div class="font-semibold text-gray-900 dark:text-white">${expense.name}</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                            $${expense.amount.toFixed(2)} &middot; ${expense.category} &middot; ${expense.date}
+                items.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = `flex items-center justify-between p-4 rounded-lg transition-all ${item.checked ? 'bg-gray-700 opacity-60 line-through' : 'bg-gray-800'}`;
+                    listItem.innerHTML = `
+                        <div class="flex items-center flex-grow">
+                            <input type="checkbox" data-id="${item.id}" ${item.checked ? 'checked' : ''} 
+                                   class="form-checkbox h-5 w-5 text-purple-600 rounded focus:ring-purple-500 mr-4 cursor-pointer bg-gray-600 border-gray-500">
+                            <span class="flex-grow text-white">${item.name}</span>
+                            <span class="text-xs text-gray-400 ml-2">(${item.userId.substring(0, 4)}...)</span>
                         </div>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="edit-btn text-indigo-600 hover:text-indigo-700 text-lg" data-id="${expense.id}" data-name="${expense.name}" data-amount="${expense.amount}" data-category="${expense.category}" data-date="${expense.date}">
-                            <i class="fas fa-edit"></i>
+                        <button data-id="${item.id}"
+                                class="delete-button p-2 text-red-400 hover:text-red-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" />
+                            </svg>
                         </button>
-                        <button class="delete-btn text-red-600 hover:text-red-700 text-lg" data-id="${expense.id}">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                `;
-                expenseList.appendChild(li);
-            });
-        }
+                    `;
+                    shoppingList.appendChild(listItem);
 
-        // Update Summary
-        function updateSummary(expenses) {
-            const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-            totalSpendingEl.textContent = `$${total.toFixed(2)}`;
+                    // Add event listeners for the checkbox and delete button
+                    listItem.querySelector('input[type="checkbox"]').addEventListener('change', async (e) => {
+                        const docId = e.target.dataset.id;
+                        const docRef = doc(db, `artifacts/${appId}/public/data/shopping_list`, docId);
+                        try {
+                            await updateDoc(docRef, { checked: e.target.checked });
+                        } catch (error) {
+                            console.error("Error updating document:", error);
+                            showModal("Error updating item: " + error.message);
+                        }
+                    });
 
-            const dates = new Set(expenses.map(exp => exp.date));
-            const dailyAverage = total / (dates.size || 1);
-            averageDailySpendingEl.textContent = `$${dailyAverage.toFixed(2)}`;
-        }
-
-        // Update Charts
-        function updateCharts(expenses) {
-            // Category Chart
-            const categoryData = expenses.reduce((acc, exp) => {
-                acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-                return acc;
-            }, {});
-            const categoryLabels = Object.keys(categoryData);
-            const categoryValues = Object.values(categoryData);
-
-            if (expensesChart) {
-                expensesChart.destroy();
-            }
-            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
-            expensesChart = new Chart(ctxCategory, {
-                type: 'doughnut',
-                data: {
-                    labels: categoryLabels,
-                    datasets: [{
-                        data: categoryValues,
-                        backgroundColor: [
-                            'rgba(255, 99, 132, 0.8)',
-                            'rgba(54, 162, 235, 0.8)',
-                            'rgba(255, 206, 86, 0.8)',
-                            'rgba(75, 192, 192, 0.8)',
-                            'rgba(153, 102, 255, 0.8)',
-                            'rgba(255, 159, 64, 0.8)',
-                            'rgba(199, 199, 199, 0.8)'
-                        ],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { callbacks: { label: (context) => `$${context.parsed}` } }
-                    }
-                }
-            });
-
-            // Daily Chart
-            const dailyData = expenses.reduce((acc, exp) => {
-                acc[exp.date] = (acc[exp.date] || 0) + exp.amount;
-                return acc;
-            }, {});
-            const dailyLabels = Object.keys(dailyData).sort();
-            const dailyValues = dailyLabels.map(date => dailyData[date]);
-
-            if (dailyChart) {
-                dailyChart.destroy();
-            }
-            const ctxDaily = document.getElementById('dailyChart').getContext('2d');
-            dailyChart = new Chart(ctxDaily, {
-                type: 'line',
-                data: {
-                    labels: dailyLabels,
-                    datasets: [{
-                        label: 'Daily Spending',
-                        data: dailyValues,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-        }
-
-        // Delete Expense
-        expenseList.addEventListener('click', async (e) => {
-            if (e.target.closest('.delete-btn')) {
-                const docId = e.target.closest('.delete-btn').dataset.id;
-                const confirmDelete = await showCustomModal('Are you sure you want to delete this expense?', 'confirm');
-                if (confirmDelete) {
-                    try {
-                        await deleteDoc(doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/expenses`, docId));
-                        showMessage('Expense deleted successfully!', 'success');
-                    } catch (error) {
-                        console.error("Error deleting document: ", error);
-                        showMessage(`Failed to delete expense: ${error.message}`, 'error');
-                    }
-                }
-            }
-            if (e.target.closest('.edit-btn')) {
-                const editBtn = e.target.closest('.edit-btn');
-                const docId = editBtn.dataset.id;
-                const expense = {
-                    name: editBtn.dataset.name,
-                    amount: parseFloat(editBtn.dataset.amount),
-                    category: editBtn.dataset.category,
-                    date: editBtn.dataset.date
-                };
-                showEditModal(docId, expense);
-            }
-        });
-
-        // Budget Modal
-        let currentBudget = 0;
-        setBudgetBtn.addEventListener('click', () => {
-            showBudgetModal(currentBudget);
-        });
-
-        async function saveBudget(userId, newBudget) {
-            try {
-                await setDoc(doc(db, `artifacts/${appId}/users/${userId}/budget`, "monthly"), { amount: newBudget });
-                showMessage('Budget saved successfully!', 'success');
-            } catch (error) {
-                console.error("Error saving budget: ", error);
-                showMessage(`Failed to save budget: ${error.message}`, 'error');
+                    listItem.querySelector('.delete-button').addEventListener('click', async (e) => {
+                        const docId = e.currentTarget.dataset.id;
+                        const docRef = doc(db, `artifacts/${appId}/public/data/shopping_list`, docId);
+                        try {
+                            await deleteDoc(docRef);
+                        } catch (error) {
+                            console.error("Error deleting document:", error);
+                            showModal("Error deleting item: " + error.message);
+                        }
+                    });
+                });
             }
         }
 
-        async function loadBudget(userId) {
-            try {
-                const docRef = doc(db, `artifacts/${appId}/users/${userId}/budget`, "monthly");
-                const docSnap = await getDoc(docRef);
-                // Check if the document exists and has data before trying to access properties
-                if (docSnap.exists() && docSnap.data()) {
-                    currentBudget = docSnap.data().amount || 0;
-                } else {
-                    currentBudget = 0;
-                }
-                monthlyBudgetEl.textContent = `$${currentBudget.toFixed(2)}`;
-            } catch (error) {
-                console.error("Error loading budget:", error);
-                showMessage('Failed to load budget. Please try again.', 'error');
-            }
-        }
+        // Start the application
+        setupApp();
 
-        // Custom Modal for confirmation and budget
-        function showCustomModal(title, type, content = '') {
-            return new Promise(resolve => {
-                modalTitle.textContent = title;
-                modalContent.innerHTML = content;
-                modal.classList.remove('hidden');
-
-                const handleConfirm = () => {
-                    modal.classList.add('hidden');
-                    resolve(true);
-                    modalConfirmBtn.removeEventListener('click', handleConfirm);
-                    modalCancelBtn.removeEventListener('click', handleCancel);
-                };
-                const handleCancel = () => {
-                    modal.classList.add('hidden');
-                    resolve(false);
-                    modalConfirmBtn.removeEventListener('click', handleConfirm);
-                    modalCancelBtn.removeEventListener('click', handleCancel);
-                };
-                modalConfirmBtn.addEventListener('click', handleConfirm);
-                modalCancelBtn.addEventListener('click', handleCancel);
-            });
-        }
-
-        function showBudgetModal(currentBudget) {
-            modalTitle.textContent = 'Set Monthly Budget';
-            modalContent.innerHTML = `
-                <input type="number" id="budgetInput" value="${currentBudget}" step="0.01" placeholder="Enter new budget" class="w-full rounded-lg border-gray-300 shadow-sm p-3 bg-gray-50 dark:bg-gray-700 dark:text-white">
-            `;
-            modalConfirmBtn.onclick = async () => {
-                const newBudget = parseFloat(document.getElementById('budgetInput').value);
-                if (!isNaN(newBudget) && auth.currentUser) {
-                    await saveBudget(auth.currentUser.uid, newBudget);
-                } else {
-                    showMessage('Invalid budget amount.', 'error');
-                }
-                modal.classList.add('hidden');
-            };
-            modalCancelBtn.onclick = () => {
-                modal.classList.add('hidden');
-            };
-            modal.classList.remove('hidden');
-        }
-        
-        // Modal for editing an existing expense
-        function showEditModal(docId, expense) {
-            modalTitle.textContent = 'Edit Expense';
-            modalContent.innerHTML = `
-                <div>
-                    <label for="editExpenseName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                    <input type="text" id="editExpenseName" value="${expense.name}" class="w-full rounded-lg border-gray-300 shadow-sm p-3 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                </div>
-                <div>
-                    <label for="editAmount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount ($)</label>
-                    <input type="number" id="editAmount" step="0.01" value="${expense.amount}" class="w-full rounded-lg border-gray-300 shadow-sm p-3 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                </div>
-                <div>
-                    <label for="editCategory" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
-                    <select id="editCategory" class="w-full rounded-lg border-gray-300 shadow-sm p-3 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                        <option value="Food" ${expense.category === 'Food' ? 'selected' : ''}>Food</option>
-                        <option value="Transport" ${expense.category === 'Transport' ? 'selected' : ''}>Transport</option>
-                        <option value="Housing" ${expense.category === 'Housing' ? 'selected' : ''}>Housing</option>
-                        <option value="Shopping" ${expense.category === 'Shopping' ? 'selected' : ''}>Shopping</option>
-                        <option value="Entertainment" ${expense.category === 'Entertainment' ? 'selected' : ''}>Entertainment</option>
-                        <option value="Bills" ${expense.category === 'Bills' ? 'selected' : ''}>Bills</option>
-                        <option value="Other" ${expense.category === 'Other' ? 'selected' : ''}>Other</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="editDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
-                    <input type="date" id="editDate" value="${expense.date}" class="w-full rounded-lg border-gray-300 shadow-sm p-3 bg-gray-50 dark:bg-gray-700 dark:text-white">
-                </div>
-            `;
-
-            modalConfirmBtn.onclick = async () => {
-                const updatedExpense = {
-                    name: document.getElementById('editExpenseName').value,
-                    amount: parseFloat(document.getElementById('editAmount').value),
-                    category: document.getElementById('editCategory').value,
-                    date: document.getElementById('editDate').value,
-                };
-
-                if (updatedExpense.name && !isNaN(updatedExpense.amount) && updatedExpense.category && updatedExpense.date) {
-                    try {
-                        await setDoc(doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}/expenses`, docId), updatedExpense);
-                        showMessage('Expense updated successfully!', 'success');
-                    } catch (error) {
-                        console.error("Error updating document: ", error);
-                        showMessage(`Failed to update expense: ${error.message}`, 'error');
-                    }
-                } else {
-                    showMessage('Please fill in all fields correctly.', 'error');
-                }
-                modal.classList.add('hidden');
-            };
-
-            modalCancelBtn.onclick = () => {
-                modal.classList.add('hidden');
-            };
-
-            modal.classList.remove('hidden');
-        }
     </script>
 </body>
 </html>
